@@ -6,7 +6,7 @@ namespace xrtc {
 
 namespace {
 
-int kWindowMs = 500;
+int kWindowMs = 500;//500ms
 
 } // namespace
 
@@ -23,6 +23,7 @@ IntervalBudget::~IntervalBudget() {
 
 void IntervalBudget::set_target_bitrate_kbps(int target_bitrate_kbps) {
     target_bitrate_kbps_ = target_bitrate_kbps;
+    //可能会因为某些原因导致处理packet的时间会很长，可能导致流逝时间会比较大，所以设置一个最大限制值
     max_bytes_in_budget_ = (target_bitrate_kbps * kWindowMs) / 8;
     // [-max_bytes_in_budget, max_bytes_in_bydget]
     bytes_remaining_ = std::min(

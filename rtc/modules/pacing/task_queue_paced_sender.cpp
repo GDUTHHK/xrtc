@@ -44,9 +44,11 @@ void TaskQueuePacedSender::CreateProbeCluster(webrtc::DataRate bitrate,int clust
     });
 }
 
+//定期去执行 pacing_controller_.ProcessPackets();
 void TaskQueuePacedSender::MaybeProcessPackets(
     webrtc::Timestamp scheduled_process_time) 
 {
+    //下一次调度的时间
     webrtc::Timestamp next_process_time = pacing_controller_.NextSendTime();
     bool is_sheculded_call = (scheduled_process_time == next_process_time_);
     if (is_sheculded_call) {
@@ -54,14 +56,15 @@ void TaskQueuePacedSender::MaybeProcessPackets(
         next_process_time_ = webrtc::Timestamp::MinusInfinity();
         // 执行数据包发送逻辑
         pacing_controller_.ProcessPackets();
+        //更新最后处理的时间
         next_process_time = pacing_controller_.NextSendTime();
     }
 
     webrtc::Timestamp now = clock_->CurrentTime();
-    // 需要过多长时间之后，再次进行这个调度
+    // 需要过多长时间之后，再次进行这个调度,时间间隔
     absl::optional<webrtc::TimeDelta> time_to_next_send;
     if (next_process_time_.IsMinusInfinity()) {
-        // 当前还没有设定下一次的调度任务，需要创建一个
+        // 当前还没有设定下一次的调度任务，需要创建一个等待的时间
         time_to_next_send = std::max(next_process_time - now, hold_back_window_);
     }
 

@@ -60,12 +60,15 @@ void PacingController::ProcessPackets() {
     webrtc::Timestamp target_send_time = now;
     // 计算流逝的时间（当前时间距离上一次发送过去了多长时间）
     webrtc::TimeDelta elapsed_time = UpdateTimeAndGetElapsed(now);
+
+    //大队列的情况
     if (elapsed_time > webrtc::TimeDelta::Zero()) {
         webrtc::DataRate target_rate = pacing_bitrate_;
         packet_queue_.UpdateQueueTime(now);
         // 队列当中正在排队的总字节数
         webrtc::DataSize queue_data_size = packet_queue_.Size();
         if (queue_data_size > webrtc::DataSize::Zero()) {
+            //开启排空的处理
             if (drain_large_queue_) {
                 // 当前队列的平均排队时间
                 webrtc::TimeDelta avg_queue_time = packet_queue_.AverageQueueTime();
@@ -74,6 +77,8 @@ void PacingController::ProcessPackets() {
                     queue_time_limit_ - avg_queue_time);
                 webrtc::DataRate min_rate_need = queue_data_size / avg_queue_left;
                 if (min_rate_need > target_rate) {
+                    //解决当队列中的排队延迟超过了最大延迟时，直接将码率设置为最低的码率，优先保证数据能在设置的延迟内发送出去
+                    //通过调整码率设置，解决队列缓存累计的时间
                     target_rate = min_rate_need;
                     RTC_LOG(LS_INFO) << "large queue, pacing_rate: " << pacing_bitrate_.kbps()
                         << ", min_rate_need: " << min_rate_need.kbps()
@@ -241,6 +246,7 @@ std::unique_ptr<RtpPacketToSend> PacingController::GetPendingPacket(const webrtc
 void PacingController::OnPacketSent(webrtc::DataSize packet_size, 
     webrtc::Timestamp send_time) 
 {
+    //消耗预算
     UpdateBudgetWithSendData(packet_size);
     last_process_time_ = send_time;
 }

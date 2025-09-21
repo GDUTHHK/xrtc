@@ -50,11 +50,10 @@ private:
     webrtc::Timestamp last_process_time_;
     RoundRobinPacketQueue packet_queue_;
     webrtc::TimeDelta min_packet_limit_;
-    IntervalBudget media_budget_;
+    IntervalBudget media_budget_;//间隔预算
     webrtc::DataRate pacing_bitrate_;
-    bool drain_large_queue_ = true;
-    // 期望的最大延迟时间
-    webrtc::TimeDelta queue_time_limit_;
+    bool drain_large_queue_ = true;//是否启用排空的功能
+    webrtc::TimeDelta queue_time_limit_;  // 期望的最大延迟时间
     BitrateProber prober_;
     bool probe_sent_failed_ = false;
 };

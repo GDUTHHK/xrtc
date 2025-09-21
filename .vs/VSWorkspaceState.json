@@ -7,8 +7,10 @@
     "\\rtc\\modules\\congestion_controller\\google_gcc",
     "\\rtc\\modules\\congestion_controller\\rtp",
     "\\rtc\\modules\\nack",
-    "\\rtc\\modules\\pacing"
+    "\\rtc\\modules\\pacing",
+    "\\rtc\\modules\\rtp_rtcp",
+    "\\rtc\\pc"
   ],
-  "SelectedNode": "\\rtc\\modules\\pacing\\task_queue_paced_sender.cpp",
+  "SelectedNode": "\\rtc\\modules\\pacing\\round_robin_packet_queue.cpp",
   "PreviewInSolutionExplorer": false
 }

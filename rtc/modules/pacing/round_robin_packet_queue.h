@@ -14,7 +14,7 @@ namespace xrtc {
 
 class RoundRobinPacketQueue {
 public:
-    RoundRobinPacketQueue(webrtc::Timestamp start_time);
+    RoundRobinPacketQueue(webrtc::Timestamp start_time);//起始时间
     ~RoundRobinPacketQueue();
 
     void Push(int priority,
@@ -24,7 +24,7 @@ public:
     std::unique_ptr<RtpPacketToSend> Pop();
 
     bool Empty() const;
-    webrtc::DataSize Size() const { return size_; }
+    webrtc::DataSize Size() const { return size_; }//队列当中还存在的数据大小
     size_t SizePackets() const { return size_packets_; }
     void UpdateQueueTime(webrtc::Timestamp now);
     webrtc::TimeDelta AverageQueueTime() const;
@@ -49,7 +49,7 @@ private:
 
         int Priority() const { return priority_; }
         uint32_t Ssrc() const { return owned_packet_->ssrc(); }
-        webrtc::Timestamp EnqueueTime() const { return enqueue_time_; }
+        webrtc::Timestamp EnqueueTime() const { return enqueue_time_; }//入队列的时间
         RtpPacketToSend* rtp_packet() const {
             return owned_packet_;
         }
@@ -95,12 +95,12 @@ private:
 private:
     size_t size_packets_ = 0;
     webrtc::DataSize max_size_;
-    webrtc::DataSize size_ = webrtc::DataSize::Zero();
+    webrtc::DataSize size_ = webrtc::DataSize::Zero();//获得排队过程中所有数据包的大小
     std::unordered_map<uint32_t, Stream> streams_;
     // 按照StreamPrioKey从小到到进行排序
     std::multimap<StreamPrioKey, uint32_t> stream_priorities_;
-    webrtc::Timestamp last_time_updated_;
-    webrtc::TimeDelta queue_time_sum_ = webrtc::TimeDelta::Zero();
+    webrtc::Timestamp last_time_updated_;//上一次更新的时间
+    webrtc::TimeDelta queue_time_sum_ = webrtc::TimeDelta::Zero();//排队总时间
 };
 
 } // namespace xrtc
