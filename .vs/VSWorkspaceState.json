@@ -1,0 +1,14 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\rtc",
+    "\\rtc\\modules",
+    "\\rtc\\modules\\congestion_controller",
+    "\\rtc\\modules\\congestion_controller\\google_gcc",
+    "\\rtc\\modules\\congestion_controller\\rtp",
+    "\\rtc\\modules\\nack",
+    "\\rtc\\modules\\pacing"
+  ],
+  "SelectedNode": "\\rtc\\modules\\pacing\\task_queue_paced_sender.cpp",
+  "PreviewInSolutionExplorer": false
+}

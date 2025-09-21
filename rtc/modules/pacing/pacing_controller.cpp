@@ -7,7 +7,7 @@ namespace xrtc {
 namespace {
 
 const webrtc::TimeDelta kDefaultMinPacketLimit = webrtc::TimeDelta::Millis(5);
-const webrtc::TimeDelta kMaxElapsedTime = webrtc::TimeDelta::Seconds(2);
+const webrtc::TimeDelta kMaxElapsedTime = webrtc::TimeDelta::Seconds(2);    
 const webrtc::TimeDelta kMaxProcessingInterval = webrtc::TimeDelta::Millis(30);
 const webrtc::TimeDelta kMaxExpectedQueueLength = webrtc::TimeDelta::Millis(2000);
 

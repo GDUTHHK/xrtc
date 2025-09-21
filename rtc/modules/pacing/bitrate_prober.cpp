@@ -40,7 +40,7 @@ void BitrateProber::CreateProbeCluster(webrtc::DataRate bitrate,webrtc::Timestam
 
 }
 
-void BitrateProber::OnIncomingPacket(webrtc::DataSize packet_size,webrtc::Timestamp now) {
+void BitrateProber::OnIncomingPacket(webrtc::DataSize packet_size) {
     if(probing_state_ == ProbingState::kInactive && !clusters_.empty()&&
         packet_size >std::min(RecommendedMinProbeSize(),kMinProbeSize))
     {

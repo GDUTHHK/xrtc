@@ -562,14 +562,17 @@ void PeerConnection::CreateAudioSendStream(AudioContentDescription* audio_conten
 }
 
 
-void PeerConnection::CreateVideoSendStream(VideoContentDescription* video_content) {
+void PeerConnection::CreateVideoSendStream(VideoContentDescription* video_content) 
+{
     if (!video_content) {
         return;
     }
 
     // 暂时只考虑推送一路视频
-    for (auto stream : video_content->streams()) {
-        if (!stream.ssrcs.empty()) {
+    for (auto stream : video_content->streams()) 
+    {
+        if (!stream.ssrcs.empty()) 
+        {
             VideoSendStreamConfig config;
             config.rtp.ssrc = stream.ssrcs[0];
             config.rtp.payload_type = video_pt_;

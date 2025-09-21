@@ -132,7 +132,7 @@ webrtc::NetworkControlUpdate GoogleCCNetworkController::OnSentPacket(const webrt
     return webrtc::NetworkControlUpdate();
 }
 
-void GoogleCCNetworkController::MaybeRiggerOnNetworkChanged(webrtc::NetworkControlUpdate* update,webrtc::Timestamp at_time) 
+void GoogleCCNetworkController::MaybeTriggerOnNetworkChanged(webrtc::NetworkControlUpdate* update,webrtc::Timestamp at_time) 
 {
     uint8_t fraction_loss = bandwidth_estimator_->fraction_loss();
     webrtc::TimeDelta rtt = bandwidth_estimator_->rtt();

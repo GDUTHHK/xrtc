@@ -24,10 +24,11 @@ public:
     webrtc::NetworkControlUpdate OnProcessInterval(const webrtc::ProcessInterval& msg) override;
     webrtc::NetworkControlUpdate OnSentPacket(const webrtc::SentPacket& sent_packet) override;
 private:
-    absl::optional<NetworkControllerConfig> init_config_;
-    void MaybeTriggerOnNetworkChanged(webrtc::NetworkControlUpdate* update,webrtc::Timestamp at_time);
+    void MaybeTriggerOnNetworkChanged(webrtc::NetworkControlUpdate* update, webrtc::Timestamp at_time);
     webrtc::PacerConfig GetPacingRate(webrtc::Timestamp at_time);
     std::vector<webrtc::ProbeClusterConfig> ResetConstraints(const webrtc::TargetRateConstraints& constraints);
+private:
+    absl::optional<NetworkControllerConfig> init_config_;
     std::unique_ptr<DelayBasedBwe> delay_based_bwe_;
     std::unique_ptr<AcknowledgedBitrateEstimator> acknowledged_bitrate_estimator_;
     std::unique_ptr<SendSideBandwidthEstimator> bandwidth_estimator_;

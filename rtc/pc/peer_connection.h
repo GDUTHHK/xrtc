@@ -3,6 +3,7 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 
 #include <system_wrappers/include/clock.h>
 #include <api/task_queue/task_queue_factory.h>
