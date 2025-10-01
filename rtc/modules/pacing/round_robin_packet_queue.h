@@ -61,6 +61,7 @@ private:
         RtpPacketToSend* owned_packet_;
     };
 
+    //Stream的优先级
     struct StreamPrioKey {
         StreamPrioKey(int priority, webrtc::DataSize size) :
             priority(priority), size(size) { }
@@ -94,7 +95,7 @@ private:
 
 private:
     size_t size_packets_ = 0;
-    webrtc::DataSize max_size_;
+    webrtc::DataSize max_size_;//累计发送的最大的流的字节数
     webrtc::DataSize size_ = webrtc::DataSize::Zero();//获得排队过程中所有数据包的大小
     std::unordered_map<uint32_t, Stream> streams_;
     // 按照StreamPrioKey从小到到进行排序

@@ -89,7 +89,7 @@ bool TransportFeedback::Parse(const rtcp::CommonHeader& packet) {
 
     const uint8_t* payload = packet.payload();
     //解析rtcp通用的部分
-    ParseCommonFeedback(payload);
+    ParseCommonFeedback(payload);//SSRC of packet sender、SSRC of media source
 
     //解析transport feedback 的头部
     base_seq_no_ = webrtc::ByteReader<uint16_t>::ReadBigEndian(&payload[8]);
@@ -112,7 +112,7 @@ bool TransportFeedback::Parse(const rtcp::CommonHeader& packet) {
     std::vector<uint8_t> delta_sizes;
     delta_sizes.reserve(status_count);
 
-    //读取完所有的RTP包的状态信息，才会结束循环
+    //读取完所有的Packet chunk包的状态信息，才会结束循环
     while(delta_sizes.size() < status_count) {
         if(index + kChunkSizeBytes > end_index) {
             RTC_LOG(LS_WARNING) << "Buffer overlow when parsing transport feedback";
@@ -129,6 +129,7 @@ bool TransportFeedback::Parse(const rtcp::CommonHeader& packet) {
         last_chunk_.Decode(chunk,status_count - delta_sizes.size());
         last_chunk_.AppendTo(&delta_sizes);
     }
+   
     num_seq_no_ = status_count;
     uint16_t seq_no = base_seq_no_;
     //0,RTP包没有收到，就没有对应的recv_delta
@@ -186,7 +187,6 @@ bool TransportFeedback::Parse(const rtcp::CommonHeader& packet) {
             if(delta_size>0){
                 received_packets_.emplace_back(seq_no,0);
             }
-            if()
             if(include_lost_) {
                 if(delta_size>0){
                     //数据包收到了，但是没有时间信息
@@ -220,6 +220,7 @@ void TransportFeedback::LastChunk::Decode(uint16_t chunk,size_t max_size) {
     }
     
 }
+
 void TransportFeedback::LastChunk::AppendTo(std::vector<uint8_t>* deltas) {
     //如果为true则为行程编码数据块
     if(all_same_) {
@@ -269,6 +270,7 @@ void TransportFeedback::LastChunk::DecodeTwoBit(uint16_t chunk,size_t max_size) 
         delta_size_[i] = (chunk>>(2*(kTwoBitCapacity - i - 1))) & 0x3;
     }
 }
+
 std::string TransportFeedback::ReceivePacket::ToString() const {
     std::stringstream ss;
     ss << "sequence_number: " << sequence_number_
@@ -278,4 +280,5 @@ std::string TransportFeedback::ReceivePacket::ToString() const {
 }
 
 }//namespace rtcp
+
 }//namespace xrtc

@@ -44,7 +44,7 @@ private:
     RTCPSender rtcp_sender_;//RTCP发送器
     RTCPReceiver rtcp_receiver_;//RTCP接收器
     
-    webrtc::ScopedTaskSafety task_safety_;
+    webrtc::ScopedTaskSafety task_safety_;//证在异步任务中使用的对象的生命周期安全
 };
 
 } // namespace xrtc

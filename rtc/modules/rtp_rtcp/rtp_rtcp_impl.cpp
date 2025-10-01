@@ -9,10 +9,9 @@ namespace xrtc {
 ModuleRtpRtcpImpl::ModuleRtpRtcpImpl(
     const RtpRtcpInterface::Configuration& config) :
     config_(config),
-    rtcp_sender_(config, [=](webrtc::TimeDelta duration) {
-        ScheduleNextRtcpSend(duration);
-    }),
-    rtcp_receiver_(config)
+    rtcp_sender_(config_, [=](webrtc::TimeDelta duration) {
+        ScheduleNextRtcpSend(duration);}),
+    rtcp_receiver_(config_)
 {
 }
 

@@ -87,4 +87,5 @@ float BitrateEstimator::UpdateWindow(int64_t now_ms,int bytes,int rate_window_ms
     sum_ += bytes;
     return bitrate_sample_kbps;
 }
+
 } // namespace xrtc

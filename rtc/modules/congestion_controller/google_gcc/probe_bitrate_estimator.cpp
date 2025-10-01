@@ -19,16 +19,20 @@ ProbeBitrateEstimator::~ProbeBitrateEstimator() {
 }
 
 
+//处理返回回来的探测包，并且进行带宽估计
 absl::optional<webrtc::DataRate> ProbeBitrateEstimator::HandleProbeAndEstimateBitrate(const webrtc::PacketResult& feedback_packet) 
 {
     int cluster_id = feedback_packet.sent_packet.pacing_info.probe_cluster_id;
 
     EraseOldCluster(feedback_packet.receive_time);
+
     AggregatedCluster* cluster =&clusters_[cluster_id];
+
     if(feedback_packet.sent_packet.send_time< cluster->first_send)
     {
         cluster->first_send = feedback_packet.sent_packet.send_time;
     }
+
     if(feedback_packet.sent_packet.send_time > cluster->last_send)
     {
         cluster->last_send = feedback_packet.sent_packet.send_time;

@@ -46,7 +46,7 @@ void TaskQueuePacedSender::CreateProbeCluster(webrtc::DataRate bitrate,int clust
     });
 }
 
-//定期去执行 pacing_controller_.ProcessPackets();定时数据包处理
+//定期去执行 pacing_controller_.ProcessPackets();定时发送数据包
 void TaskQueuePacedSender::MaybeProcessPackets(
     webrtc::Timestamp scheduled_process_time) 
 {

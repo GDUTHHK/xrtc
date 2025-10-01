@@ -14,7 +14,7 @@
 #include "xrtc/rtc/pc/peer_connection_def.h"
 #include "xrtc/rtc/pc/rtp_transport_controller_send.h"
 #include "xrtc/rtc/video/video_send_stream.h"
-#include "xrtc/rtc/audio/audio_send_stream.h"
+//#include "xrtc/rtc/audio/audio_send_stream.h"
 #include "xrtc/rtc/modules/rtp_rtcp/rtp_rtcp_interface.h"
 #include "xrtc/rtc/modules/rtp_rtcp/rtp_header_extension_map.h"
 
@@ -40,7 +40,7 @@ public:
     int SetRemoteSDP(const std::string& sdp);
     std::string CreateAnswer(const RTCOfferAnswerOptions& options,
         const std::string& stream_id);
-    bool SendEncodedAudio(std::shared_ptr<MediaFrame> frame);
+    //bool SendEncodedAudio(std::shared_ptr<MediaFrame> frame);
     bool SendEncodedImage(std::shared_ptr<MediaFrame> frame);
 
     // RtpRtcpModuleObserver
@@ -69,7 +69,7 @@ private:
     void OnIceState(TransportController*, ice::IceTransportState ice_state);
     void OnRtcpPacketReceived(TransportController*, const char* data,
         size_t len, int64_t);
-    void CreateAudioSendStream(AudioContentDescription* audio_content);
+    //void CreateAudioSendStream(AudioContentDescription* audio_content);
     void CreateVideoSendStream(VideoContentDescription* video_content);
     void AddVideoCache(std::shared_ptr<RtpPacketToSend> packet);
     std::shared_ptr<RtpPacketToSend> FindVideoCache(uint16_t seq);
@@ -81,10 +81,10 @@ private:
     std::unique_ptr<TransportController> transport_controller_;//底层传输管理，处理 ICE 连接
     RtpHeaderExtensionMap rtp_header_extension_map_;//RTP头部扩展管理器
     
-    uint32_t local_audio_ssrc_ = 0;
+    //uint32_t local_audio_ssrc_ = 0;
     uint32_t local_video_ssrc_ = 0;
     uint32_t local_video_rtx_ssrc_ = 0;
-    uint32_t audio_pt_ = 0;
+    //uint32_t audio_pt_ = 0;
     uint8_t video_pt_ = 0;
     uint8_t video_rtx_pt_ = 0;
 
@@ -95,8 +95,8 @@ private:
     
     PeerConnectionState pc_state_ = PeerConnectionState::kNew;//连接状态枚举
     webrtc::Clock* clock_;
-    AudioSendStream* audio_send_stream_ = nullptr;
-    VideoSendStream* video_send_stream_ = nullptr;
+    //AudioSendStream* audio_send_stream_ = nullptr;
+    VideoSendStream* video_send_stream_ = nullptr;//视频流发送
     std::vector<std::shared_ptr<RtpPacketToSend>> video_cache_;//RTP已发送数据包缓存，用于NACK
     std::unique_ptr<webrtc::TaskQueueFactory> task_queue_factory_;//异步任务队列工厂
     std::unique_ptr<RtpTransportControllerSend> transport_send_;//RTP传输控制器

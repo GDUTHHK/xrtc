@@ -15,7 +15,7 @@ RtpTransportControllerSend::RtpTransportControllerSend(webrtc::Clock* clock,
         webrtc::TimeDelta::Millis(1)),
     task_queue_(task_queue_factory->CreateTaskQueue("rtp_send_task_queue",webrtc::TaskQueueFactory::Priority::NORMAL))
 {
-    task_queue_pacer_->EnsureStarted();
+    task_queue_pacer_->EnsureStarted();//开启定时发送RTP数据包
 
     webrtc::TargetRateConstraints constraints;
     constraints.at_time = clock_->CurrentTime();

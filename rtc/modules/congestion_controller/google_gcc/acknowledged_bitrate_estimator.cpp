@@ -8,12 +8,14 @@ AcknowledgedBitrateEstimator::~AcknowledgedBitrateEstimator() {
 }
 void AcknowledgedBitrateEstimator::IncomingPacketFeedbackVector(const webrtc::PacketResult& packet_feedback_vector) {
     for(const auto& packet : packet_feedback_vector) {
+        //ALR
         if(alr_end_time_ && packet.sent_packet.send_time > *alr_end_time_) {
             bitrate_estimator_->ExpectedFastRateChange();
             alr_end_time_.reset();
         }
+
         webrtc::DataSize acknowledged_estimate = packet.send_packet.size;
-        bitrate_estimator_->Update(packet.receive_time,acknowledged_estimate);
+        bitrate_estimator_->Update(packet.receive_time,acknowledged_estimate);//¸üĞÂÍÌÍÂÁ¿
     }
 }
 

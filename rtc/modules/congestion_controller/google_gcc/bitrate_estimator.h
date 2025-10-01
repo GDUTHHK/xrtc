@@ -6,6 +6,8 @@
 #include <api/units/data_size.h>
 #include <api/units/data_rate.h>
 namespace xrtc {
+
+//吞吐量估计
 class BitrateEstimator {
 public:
     BitrateEstimator();

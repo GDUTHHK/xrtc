@@ -47,9 +47,9 @@ void TransportFeedbackAdapter::AddPacket(webrtc::Timestamp creation_time,size_t 
     history_.insert(std::make_pair(packet.sent.sequence_number, packet));
 }
 
-//将原始的TransportpacketsFeedback转换成拥塞控制内部需要的一个结构
+//将原始的TransportFeedback转换成拥塞控制内部需要的一个结构TransportpacketsFeedback
 absl::webrtc::optional<webrtc::TransportpacketsFeedback> TransportFeedbackAdapter::ProcessTransportFeedback(
-    const webrtc::TransportpacketsFeedback& feedback,
+    const webrtc::TransportFeedback& feedback,
     webrtc::Timestamp feedback_time) {
         if(feedback.GetPacketStatusCount() == 0) {
             RTC_LOG(LS_INFO) << "TransportFeedbackAdapter::ProcessTransportFeedback: feedback is empty";
@@ -63,6 +63,7 @@ absl::webrtc::optional<webrtc::TransportpacketsFeedback> TransportFeedbackAdapte
         if(msg.packet_feedbacks.empty()) {
             return absl::nullopt;
         }
+
         auto it = history_.find(last_ack_seq_num_);
         if(it != history_.end()) {
             msg.first_unacked_send_time = it->second.sent.send_time;
@@ -70,9 +71,9 @@ absl::webrtc::optional<webrtc::TransportpacketsFeedback> TransportFeedbackAdapte
         return msg;
 }
 
-//将原始的RTP的包转换成拥塞控制内部需要的一个结构
+//将Feedback中的原始的RTP的包的状态信息记录、并且转换成拥塞控制内部需要的一个结构
 std::vector<webrtc::PacketResult> TransportFeedbackAdapter::ProcessTransportFeedbackInner(
-    const webrtc::TransportpacketsFeedback& feedback,
+    const webrtc::TransportFeedback& feedback,
     webrtc::Timestamp feedback_time) {
         if(last_timestamp_.isInfinite()){//第一次收到feedbac
             current_offset_ = feedback_time;//current_offset_为基准时间
@@ -86,7 +87,7 @@ std::vector<webrtc::PacketResult> TransportFeedbackAdapter::ProcessTransportFeed
                 current_offset_ += delta;
             }
         }
-        last_timestamp_ = feedback.GetBaseTime();
+        last_timestamp_ = feedback.GetBaseTime();//转换成发送端时间
         std::vector<webrtc::PacketResult> packet_results_vector;
         packet_results_vector.reserve(feedback.GetPacketStatusCount());
 

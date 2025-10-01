@@ -40,6 +40,7 @@ RoundRobinPacketQueue::RoundRobinPacketQueue(webrtc::Timestamp start_time) :
 RoundRobinPacketQueue::~RoundRobinPacketQueue() {
 }
 
+//存放Feedback数据包
 void RoundRobinPacketQueue::Push(int priority, 
     webrtc::Timestamp enqueue_time, 
     uint64_t enqueue_order, 
@@ -60,7 +61,7 @@ std::unique_ptr<RtpPacketToSend> RoundRobinPacketQueue::Pop() {
 
     queue_time_sum_ -= (last_time_updated_ - queued_packet.EnqueueTime());
     
-    webrtc::DataSize packet_size = PacketSize(queued_packet);
+    webrtc::DataSize packet_size = PacketSize(queued_packet);//计算包大小
     // 更新stream累计发送的字节数
     // 大视频流 2000
     // 小视频流 50
@@ -108,6 +109,7 @@ webrtc::TimeDelta RoundRobinPacketQueue::AverageQueueTime() const {
     return queue_time_sum_ / size_packets_;
 }
 
+//存Feedback数据包
 void RoundRobinPacketQueue::Push(const QueuedPacket& packet) {
     // 查找packet是否存在对应的stream
     auto stream_iter = streams_.find(packet.Ssrc());
@@ -138,12 +140,14 @@ void RoundRobinPacketQueue::Push(const QueuedPacket& packet) {
     stream->packet_queue.emplace(packet);
 }
 
+//找到最高优先级流并且返回
 RoundRobinPacketQueue::Stream*  RoundRobinPacketQueue::GetHighestPriorityStream() {
     uint32_t ssrc = stream_priorities_.begin()->second;
     auto stream_it = streams_.find(ssrc);
     return &stream_it->second;
 }
 
+//获得Feedback数据包的大小
 webrtc::DataSize RoundRobinPacketQueue::PacketSize(const QueuedPacket& queued_packet) {
     return webrtc::DataSize::Bytes(queued_packet.rtp_packet()->payload_size() +
         queued_packet.rtp_packet()->padding_size());

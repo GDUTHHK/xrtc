@@ -411,6 +411,7 @@ bool PeerConnection::SendEncodedImage(std::shared_ptr<MediaFrame> frame) {
     return true;
 }
 
+
 void PeerConnection::OnLocalRtcpPacket(webrtc::MediaType media_type, 
     const uint8_t* data, 
     size_t len) 
@@ -594,7 +595,7 @@ void PeerConnection::CreateVideoSendStream(VideoContentDescription* video_conten
             config.rtp.ssrc = stream.ssrcs[0];
             config.rtp.payload_type = video_pt_;
             config.rtp_rtcp_module_observer = this;
-            config.transport_feedback_observer = transport_send_.get();
+            config.transport_feedback_observer = transport_send_.get();//拥塞控制器
             //设置重传包
             if (stream.ssrcs.size() > 1) {
                 config.rtp.rtx.ssrc = stream.ssrcs[1];

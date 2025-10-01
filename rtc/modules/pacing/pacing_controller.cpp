@@ -199,6 +199,7 @@ void PacingController::EnqueuePacketInternal(int priority,
     packet_queue_.Push(priority, now, packet_counter_++, std::move(packet));
 }
 
+// 计算流逝的时间（当前时间距离上一次发送过去了多长时间）
 webrtc::TimeDelta PacingController::UpdateTimeAndGetElapsed(webrtc::Timestamp now) {
     if (now < last_process_time_) {
         return webrtc::TimeDelta::Zero();
@@ -206,8 +207,8 @@ webrtc::TimeDelta PacingController::UpdateTimeAndGetElapsed(webrtc::Timestamp no
 
     webrtc::TimeDelta elapsed_time = now - last_process_time_;
     last_process_time_ = now;
-    if (elapsed_time > kMaxElapsedTime) {
-        elapsed_time = kMaxElapsedTime;
+    if (elapsed_time > kMaxElapsedTime) {//流逝时间做一个限制2秒
+        elapsed_time = kMaxElapsedTime;//避免流逝的时间太大，导致预算过大，从而起不到平滑的作用
         RTC_LOG(LS_WARNING) << "elapsed time " << elapsed_time.ms()
             << " is longer than expected, limitting to "
             << kMaxElapsedTime.ms();
@@ -215,6 +216,7 @@ webrtc::TimeDelta PacingController::UpdateTimeAndGetElapsed(webrtc::Timestamp no
     return elapsed_time;
 }
 
+//根据流逝时间增加预算
 void PacingController::UpdateBudgetWithElapsedTime(
     webrtc::TimeDelta elapsed_time) 
 {
@@ -222,6 +224,7 @@ void PacingController::UpdateBudgetWithElapsedTime(
     media_budget_.IncreaseBudget(delta.ms());
 }
 
+//消耗预算
 void PacingController::UpdateBudgetWithSendData(webrtc::DataSize size) {
     media_budget_.UseBudget(size.bytes());
 }

@@ -16,7 +16,8 @@ struct PacketFeedback {
     webrtc::Timestamp receive_time = webrtc::Timestamp::PlusInfinity();//包到达时间，已经转换为发送时间。但是间隔还是一样的
 };
 
-class TransportFeedbackAdapter : public NetworkControllerInterface {
+//用于记录发送和接收RTP的间隔、是否有丢包
+class TransportFeedbackAdapter{// : public NetworkControllerInterface 
 public:
     TransportFeedbackAdapter();
     ~TransportFeedbackAdapter();

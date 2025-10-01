@@ -11,6 +11,7 @@
 namespace xrtc {
 namespace rtcp{
 
+//RTCP的TransportFeedback包的数据存储
 class TransportFeedback : public Rtpfb {
 public:
     class ReceivePacket{

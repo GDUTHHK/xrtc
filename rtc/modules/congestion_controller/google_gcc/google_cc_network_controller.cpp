@@ -37,6 +37,7 @@ webrtc::NetworkControlUpdate GoogleCCNetworkController::OnTransportpacketsFeedba
     if(report.packet_feedbacks.empty()) {
         return webrtc::NetworkControlUpdate();
     }
+
     absl::optional<int64_t> alr_start_time = alr_detector_->GetAlrStartTime();//判断是否进入ALR状态
     previously_in_alr_ = alr_start_time.has_value();//如果ALR开始时间不为空，则之前处于ALR状态
 
@@ -50,12 +51,13 @@ webrtc::NetworkControlUpdate GoogleCCNetworkController::OnTransportpacketsFeedba
 
     //将数据包反馈信息传递给吞吐量估计器
     //里面只包含对面确认接收到的数据包
-    acknowledged_bitrate_estimator_->IncomingPacketFeedbackVector(report.SortedByReceiveTime());
+    acknowledged_bitrate_estimator_->IncomingPacketFeedbackVector(report.SortedByReceiveTime());//更新吞吐量
 
-    absl::optional<webrtc::DataRate> acked_bitrate = acknowledged_bitrate_estimator_->bitrate();
+    absl::optional<webrtc::DataRate> acked_bitrate = acknowledged_bitrate_estimator_->bitrate();//吞吐量
 
     for(const auto& feedback :report.SortedByReceiveTime())
     {
+       //用于检测探测包
         if(feedback.sent_packet.pacing_info.probe_cluster_id != webrtc::PacedPacketInfo::kNotAProbe)
         {
             // RTC_LOG(LS_WARNING) << "============feedback pack_id:"<<feedback.packet_id;

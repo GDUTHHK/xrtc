@@ -45,6 +45,7 @@ public:
     RtpPacketCounter retransmitted;
 };
 
+//包的类型
 enum class RtpPacketMediatype:size_t {
     kAudio,
     kVideo,

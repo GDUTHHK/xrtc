@@ -11,7 +11,7 @@
 
 namespace xrtc {
 
-//平滑发送总管理
+//真正实现漏桶数据包平滑算法
 class PacingController {
 public:
     class PacketSender {
@@ -52,7 +52,7 @@ private:
     RoundRobinPacketQueue packet_queue_;//流队列，存储优先级包
     webrtc::TimeDelta min_packet_limit_;
     IntervalBudget media_budget_;//间隔预算
-    webrtc::DataRate pacing_bitrate_;
+    webrtc::DataRate pacing_bitrate_;//目标码率，带宽估计会动态设置
     bool drain_large_queue_ = true;//是否启用排空的功能
     webrtc::TimeDelta queue_time_limit_;  // 期望的最大延迟时间
     BitrateProber prober_;//比特探测

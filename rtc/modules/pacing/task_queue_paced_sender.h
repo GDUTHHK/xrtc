@@ -32,7 +32,7 @@ private:
     rtc::TaskQueue task_queue_;
     PacingController pacing_controller_;
     // 初始值是负的无穷大，表示暂时还没有调度任何任务
-    webrtc::Timestamp next_process_time_ = webrtc::Timestamp::MinusInfinity();
+    webrtc::Timestamp next_process_time_ = webrtc::Timestamp::MinusInfinity();//下一个需要调度的时刻
     // 最小的调度周期
     webrtc::TimeDelta hold_back_window_;
 };

@@ -13,6 +13,7 @@
 
 namespace xrtc {
 
+ //RTP包发送控制类
 class RtpTransportControllerSend: public TransportFeedbackObserver {
 public:
     RtpTransportControllerSend(webrtc::Clock* clock,
@@ -46,7 +47,7 @@ private:
     int32_t last_packets_lost_ = 0;
     uint32_t last_extended_highest_sequence_number_ = 0;
 
-    webrtc::RepeatingTaskHandle controller_task_;
+    webrtc::RepeatingTaskHandle controller_task_;//用于管理和控制重复性任务的句柄
     webrtc::TimeDelta process_interval_ = webrtc::TimeDelta::Millis(25);//定时器25ms触发一次
     rtc::TaskQueue task_queue_;//后面所有的拥塞控制的调用都放在这里面
 };
