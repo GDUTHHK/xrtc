@@ -28,13 +28,13 @@ private:
     webrtc::PacerConfig GetPacingRate(webrtc::Timestamp at_time);
     std::vector<webrtc::ProbeClusterConfig> ResetConstraints(const webrtc::TargetRateConstraints& constraints);
 private:
-    absl::optional<NetworkControllerConfig> init_config_;
-    std::unique_ptr<DelayBasedBwe> delay_based_bwe_;
-    std::unique_ptr<AcknowledgedBitrateEstimator> acknowledged_bitrate_estimator_;
-    std::unique_ptr<SendSideBandwidthEstimator> bandwidth_estimator_;
-    std::unique_ptr<AlrDetector> alr_detector_;
-    std::unique_ptr<ProbeController> probe_controller_;
-    std::unique_ptr<ProbeBitrateEstimator> probe_bitrate_estimator_;
+    absl::optional<NetworkControllerConfig> init_config_;//带宽估计模块的初始化配置
+    std::unique_ptr<DelayBasedBwe> delay_based_bwe_;//基于延迟的带宽估计模块
+    std::unique_ptr<AcknowledgedBitrateEstimator> acknowledged_bitrate_estimator_;//已确认带宽估计模块
+    std::unique_ptr<SendSideBandwidthEstimator> bandwidth_estimator_;//基于丢包的带宽估计模块
+    std::unique_ptr<AlrDetector> alr_detector_;//ALR探测模块：应用限制检测
+    std::unique_ptr<ProbeController> probe_controller_;//探测模块
+    std::unique_ptr<ProbeBitrateEstimator> probe_bitrate_estimator_;//探测带宽估计模块
     webrtc::DataRate last_loss_based_bitrate_;
     uint8_t last_estimated_fraction_loss_ = 0;
     webrtc::TimeDelta last_estimated_rtt_ = webrtc::TimeDelta::PlusInfinity();

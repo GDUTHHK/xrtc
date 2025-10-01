@@ -6,6 +6,7 @@ namespace {
 const double kDefaultPaceMultiplier = 2.5f;
 const webrtc::DataRate kGccMinBitrate = webrtc::DataRate::BitsPerSec(5000);//最小码率5kbps
 
+//获取码率
 int64_t GetBpsOrDefault(const absl::optional<webrtc::DataRate>& rate,int64_t fallback_bps) {
     if(rate && rate->IsFinite()) {
         return rate->bps();
@@ -117,11 +118,18 @@ webrtc::NetworkControlUpdate GoogleCCNetworkController::OnProcessInterval(const 
         update.pacer_config = GetPacingRate(msg.at_time);
         init_config_.reset();
     }
+    //基于丢包的带宽预测
     bandwidth_estimator_->UpdateEstimate(msg.at_time);
+
+    //AlR
     absl::optional<int64_t> alr_start_time = alr_detector_->GetAlrStartTime();
     probe_controller_->SetAlrStartTime(alr_start_time);
+
+    //probe探测
     auto probes = probe_controller_->Process(msg.at_time.ms());
     update.probe_clusters_configs.insert(update.probe_clusters_configs.end(),probes.begin(),probes.end());
+
+    //检查是否网络状态发生改变
     MaybeTriggerOnNetworkChanged(&update,msg.at_time);
     return update;
 }
@@ -132,6 +140,7 @@ webrtc::NetworkControlUpdate GoogleCCNetworkController::OnSentPacket(const webrt
     return webrtc::NetworkControlUpdate();
 }
 
+//可能触发了网络的改变，触发了则需要更新状态
 void GoogleCCNetworkController::MaybeTriggerOnNetworkChanged(webrtc::NetworkControlUpdate* update,webrtc::Timestamp at_time) 
 {
     uint8_t fraction_loss = bandwidth_estimator_->fraction_loss();
@@ -153,6 +162,7 @@ void GoogleCCNetworkController::MaybeTriggerOnNetworkChanged(webrtc::NetworkCont
         target_rate_msg.target_rate = loss_based_bitrate;
 
         update->target_rate = target_rate_msg;
+
         auto probings = probe_controller_->SetEstimateBitrates(loss_based_bitrate.bps(),at_time.ms());
         update->probe_clusters_configs.insert(update->probe_clusters_configs.end(),probings.begin(),probings.end());
         update->pacer_config = GetPacingRate(at_time);
@@ -165,10 +175,11 @@ void GoogleCCNetworkController::MaybeTriggerOnNetworkChanged(webrtc::NetworkCont
 
 }
 
+//得到每秒可发送的码率
 webrtc::PacerConfig GoogleCCNetworkController::GetPacingRate(webrtc::Timestamp at_time) 
 {
     //尽量将发送的码率大一点，因为编码器输出的码率不是固定的,并且头部信息也占用一定码率，所以不能直接等于计算出来的码率
-    webrtc::DataRate pacing_rate =  last_loss_based_bitrate_ *  pacing_factor_;
+    webrtc::DataRate pacing_rate =  last_loss_based_bitrate_ *  pace_factor_;
     webrtc::PacerConfig msg;
     msg.at_time = at_time;
     msg.time_window = webrtc::TimeDelta::Seconds(1);
@@ -204,6 +215,9 @@ std::vector<webrtc::ProbeClusterConfig> GoogleCCNetworkController::ResetConstrai
 
     delay_based_bwe_->SetMinBitrate(min_data_rate_);
 
+    //设置探测的起始码率，返回空的带宽估计算法中一个非常重要的指令
+    //简单来说，这个返回值的用处是告诉上层模块（比如 PacedSender）：“请立即发送几组网络探测包（Probe Packets）”。
+    //当前情况下，不需要发送任何探测包
     return  probe_controller_->SetBitrates(
         min_data_rate_.bps_or(-1),
         GetBpsOrDefault(starting_rate_,-1),

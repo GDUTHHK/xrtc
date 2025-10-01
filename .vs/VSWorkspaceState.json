@@ -4,13 +4,13 @@
     "\\rtc",
     "\\rtc\\modules",
     "\\rtc\\modules\\congestion_controller",
-    "\\rtc\\modules\\congestion_controller\\google_gcc",
     "\\rtc\\modules\\congestion_controller\\rtp",
     "\\rtc\\modules\\nack",
     "\\rtc\\modules\\pacing",
     "\\rtc\\modules\\rtp_rtcp",
-    "\\rtc\\pc"
+    "\\rtc\\modules\\rtp_rtcp\\rtcp_packet",
+    "\\rtc\\video"
   ],
-  "SelectedNode": "\\rtc\\modules\\pacing\\round_robin_packet_queue.cpp",
+  "SelectedNode": "\\rtc\\modules\\rtp_rtcp\\rtcp_packet\\transport_feedback.h",
   "PreviewInSolutionExplorer": false
 }

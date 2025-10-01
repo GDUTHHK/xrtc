@@ -138,8 +138,7 @@ void RoundRobinPacketQueue::Push(const QueuedPacket& packet) {
     stream->packet_queue.emplace(packet);
 }
 
-RoundRobinPacketQueue::Stream* 
-RoundRobinPacketQueue::GetHighestPriorityStream() {
+RoundRobinPacketQueue::Stream*  RoundRobinPacketQueue::GetHighestPriorityStream() {
     uint32_t ssrc = stream_priorities_.begin()->second;
     auto stream_it = streams_.find(ssrc);
     return &stream_it->second;

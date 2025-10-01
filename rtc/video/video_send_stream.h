@@ -19,11 +19,13 @@ public:
         int64_t capture_time_ms,
         bool forced_report);
     void DeliverRtcp(const uint8_t* packet, size_t length);
-    std::unique_ptr<RtpPacketToSend> BuildRtxPacket(
-        RtpPacketToSend* packet,
-        RtpHeaderExtensionMap* rtp_header_extension_map);
+    std::unique_ptr<RtpPacketToSend> BuildRtxPacket(RtpPacketToSend* packet,RtpHeaderExtensionMap* rtp_header_extension_map);
 
 private:
+    std::unique_ptr<ModuleRtpRtcpImpl> CreateRtpRtcpModule(webrtc::Clock* clock,
+        const VideoSendStreamConfig& vsconfig);
+private:
+
     VideoSendStreamConfig config_;
     std::unique_ptr<ModuleRtpRtcpImpl> rtp_rtcp_;
     uint16_t rtx_seq_ = 1000;

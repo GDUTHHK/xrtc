@@ -76,10 +76,10 @@ private:
     void AddPacketToTransportFeedback(uint16_t packet_id,const webrtc::PacedPacketInfo& pacing_info,RtpPacketToSend* packet);
     void OnTargetTransferRate(RtpTransportControllerSend*, const webrtc::TargetTransferRate& target_bitrate);
 private:
-    std::unique_ptr<SessionDescription> remote_desc_;
-    std::unique_ptr<SessionDescription> local_desc_;
-    std::unique_ptr<TransportController> transport_controller_;
-    RtpHeaderExtensionMap rtp_header_extension_map_;
+    std::unique_ptr<SessionDescription> remote_desc_;//远端会话描述
+    std::unique_ptr<SessionDescription> local_desc_;//本地会话描述
+    std::unique_ptr<TransportController> transport_controller_;//底层传输管理，处理 ICE 连接
+    RtpHeaderExtensionMap rtp_header_extension_map_;//RTP头部扩展管理器
     
     uint32_t local_audio_ssrc_ = 0;
     uint32_t local_video_ssrc_ = 0;
@@ -93,13 +93,13 @@ private:
     uint16_t audio_seq_ = 1000;
     uint16_t transport_seq_ = 1000;
     
-    PeerConnectionState pc_state_ = PeerConnectionState::kNew;
+    PeerConnectionState pc_state_ = PeerConnectionState::kNew;//连接状态枚举
     webrtc::Clock* clock_;
     AudioSendStream* audio_send_stream_ = nullptr;
     VideoSendStream* video_send_stream_ = nullptr;
-    std::vector<std::shared_ptr<RtpPacketToSend>> video_cache_;
-    std::unique_ptr<webrtc::TaskQueueFactory> task_queue_factory_;
-    std::unique_ptr<RtpTransportControllerSend> transport_send_;
+    std::vector<std::shared_ptr<RtpPacketToSend>> video_cache_;//RTP已发送数据包缓存，用于NACK
+    std::unique_ptr<webrtc::TaskQueueFactory> task_queue_factory_;//异步任务队列工厂
+    std::unique_ptr<RtpTransportControllerSend> transport_send_;//RTP传输控制器
 };
 
 } // namespace xrtc

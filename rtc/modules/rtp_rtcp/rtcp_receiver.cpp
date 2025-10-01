@@ -47,7 +47,7 @@ bool RTCPReceiver::ParseCompoundPacket(rtc::ArrayView<const uint8_t> packet,
         next_block = rtcp_block.NextPacket()) 
     {
         ptrdiff_t remaining_packet_size = packet.end() - next_block;
-        if (!rtcp_block.Parse(next_block, remaining_packet_size)) {
+        if (!rtcp_block.Parse(next_block, remaining_packet_size)) {//解析FeedBack包公共头部，并且判断长度是否正确
             if (next_block == packet.begin()) {
                 RTC_LOG(LS_WARNING) << "parse rtcp packet failed";
                 return false;
@@ -157,6 +157,7 @@ void RTCPReceiver::HandleTransportFeedback(const rtcp::CommonHeader& rtcp_block,
         ++num_skipped_packets_;
         return;
     }
+
     if (transport_feedback_observer_) {
         uint32_t ssrc = transport_feedback->media_ssrc();
         // if (ssrc == media_ssrc_) {

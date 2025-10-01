@@ -76,6 +76,7 @@ std::vector<webrtc::ProbeClusterConfig> ProbeController::SetEstimateBitrates(
         time_of_last_drop_large_ms_ = at_time_ms;
         bitrate_before_last_drop_large_bps_ = estimate_bitrate_bps_;
     }
+
     return pending_probes;
 }
 
@@ -146,6 +147,8 @@ std::vector<webrtc::ProbeClusterConfig> ProbeController::RequestProbe(int64_t at
     }
     return InitProbing(at_time_ms,std::vector<int64_t>{start_bitrate_bps_},false);
 }
+
+
 
 std::vector<webrtc::ProbeClusterConfig> ProbeController::InitProbing(
     int64_t at_time_ms,

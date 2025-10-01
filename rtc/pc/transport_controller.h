@@ -7,6 +7,7 @@ namespace xrtc {
 
 class SessionDescription;
 
+// 该类的作用：SDP处理和ICE传输通道管理、BUNDLE优化处理、数据包收发管理、信号转发和状态管理
 class TransportController : public sigslot::has_slots<> {
 public:
     TransportController();

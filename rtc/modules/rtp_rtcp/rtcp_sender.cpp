@@ -92,12 +92,12 @@ void RTCPSender::SetRTCPStatus(webrtc::RtcpMode mode) {
 void RTCPSender::SetLastRtpTimestamp(uint32_t rtp_timestamp, 
     absl::optional<webrtc::Timestamp> last_frame_capture_time) 
 {
-    last_rtp_timestamp_ = rtp_timestamp;
+    last_rtp_timestamp_ = rtp_timestamp;// 记录最新的RTP时间戳
     if (last_frame_capture_time.has_value()) {
-        last_frame_capture_time_ = last_frame_capture_time;
+        last_frame_capture_time_ = last_frame_capture_time; // 记录捕获时间
     }
     else {
-        last_frame_capture_time_ = clock_->CurrentTime();
+        last_frame_capture_time_ = clock_->CurrentTime();// 使用当前时间
     }
 }
 
@@ -105,16 +105,17 @@ bool RTCPSender::TimeToSendRTCPPacket(bool send_before_keyframe) {
     webrtc::Timestamp now = clock_->CurrentTime();
 
     if (!audio_ && send_before_keyframe) {
-        now += RTCP_BEFORE_KEY_FRAME;
+        now += RTCP_BEFORE_KEY_FRAME;// IDR帧前提前100ms发送RTCP
     }
-    return now >= *next_time_to_send_rtcp_;
+    return now >= *next_time_to_send_rtcp_;// 检查是否到了发送时间
 }
 
-int RTCPSender::SendRTCP(const FeedbackState& feedback_state,
-    RTCPPacketType packet_type,
-    size_t nack_size,
-    const uint16_t* nack_list)
+int RTCPSender::SendRTCP(const FeedbackState& feedback_state,//反馈状态信息:已发送的RTP包总数、已发送的媒体数据字节数
+    RTCPPacketType packet_type,//RTCP包类型
+    size_t nack_size,// NACK列表大小
+    const uint16_t* nack_list)//NACK序列号列表
 {
+    //创建数据包发送器
     absl::optional<PacketSender> sender;
     auto callback = [&](rtc::ArrayView<const uint8_t> packet) {
         // 可以获得打包后的复合包
@@ -126,6 +127,7 @@ int RTCPSender::SendRTCP(const FeedbackState& feedback_state,
     };
     sender.emplace(callback, max_packet_size_);
 
+    //构建RTCP复合包
     int ret = ComputeCompoundRTCPPacket(feedback_state,
         packet_type, nack_size, nack_list, *sender);
 
@@ -134,6 +136,7 @@ int RTCPSender::SendRTCP(const FeedbackState& feedback_state,
     return ret;
 }
 
+// 设置下一次发送报告的时间
 void RTCPSender::SetNextRtcpSendEvaluationDuration(webrtc::TimeDelta duration) {
     next_time_to_send_rtcp_ = clock_->CurrentTime() + duration;
     if (schedule_next_rtcp_send_) {
@@ -171,6 +174,7 @@ int RTCPSender::ComputeCompoundRTCPPacket(const FeedbackState& feedback_state,
 
     RtcpContext context(feedback_state, clock_->CurrentTime());
     
+    // 准备发送报告
     PrepareReport(feedback_state);
 
     // 遍历flag，根据rtcp类型，构造对应的rtcp包
@@ -225,22 +229,28 @@ bool RTCPSender::AllVolatileFlagsConsumed() {
     return true;
 }
 
+// 准备发送报告
 void RTCPSender::PrepareReport(const FeedbackState& feedback_state) {
     bool generate_report = true;
 
+    // 消费报告标志
     ConsumeFlag(kRtcpReport, false);
+    // 设置报告标志
     SetFlag(sending_ ? kRtcpSr : kRtcpRr);
 
     if (generate_report) {
         // 设置下一次发送报告的时间
         int minimal_interval_ms = report_interval_ms_.ms();
+        // 随机化：实际间隔在50%-150%之间随机，避免网络拥塞
         webrtc::TimeDelta time_to_next = webrtc::TimeDelta::Millis(
             random_.Rand(minimal_interval_ms * 1 / 2, minimal_interval_ms * 3 / 2)
         );
+        // 设置下一次发送报告的时间
         SetNextRtcpSendEvaluationDuration(time_to_next);
     }
 }
 
+// 构建SR包
 void RTCPSender::BuildSr(const RtcpContext& context, PacketSender& sender) {
     // 计算当前时间的rtp_timestamp
     // last_rtp_timestamp_ -> last_frame_capture_time_

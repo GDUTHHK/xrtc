@@ -9,9 +9,10 @@ namespace rtcp{
 namespace{
 const size_t kRtcpTransportFeedbackHeaderSize = 4 + 8 + 8;
 //Transport feedback 包的最小长度
-// Rtcp 通用部分，8 字节
-// Transport feedback 头部，8 字节
-// 至少要包含一个 packet chunk，2 字节
+// 从SSRC of packet sender开始
+// Rtcp 通用部分：                 8 字节SSRC of packet sender和SSRC of media source
+// Transport feedback 头部：       8 字节base sequence number、packet status count、 reference time 和 fb pkt. count
+// 至少要包含一个 packet chunk：   2 字节
 const size_t kMinPayloadSizeBytes = 8+8+2;
 const size_t kChunkSizeBytes = 2;
 constexpr int64_t kBaseScaleFactor = TransportFeedback::kDeltaScaleFactor*256;//64ms
@@ -75,6 +76,8 @@ int64_t TransportFeedback::GetBaseDeltaUs(int64_t prev_timestamp_us) const {
     return delta;
 }
 
+
+//对Feedback包数据进行解析
 bool TransportFeedback::Parse(const rtcp::CommonHeader& packet) {
     //检查长度是否满足最低要求
     if (packet.payload_size() < kMinPayloadSizeBytes) {

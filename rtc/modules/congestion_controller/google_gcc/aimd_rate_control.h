@@ -7,7 +7,8 @@
 #include <absl/types/optional.h>
 #include "xrtc/rtc/modules/congestion_controller/google_gcc/link_capacity_estimator.h"
 namespace xrtc {
-
+    
+// AIMD 码率控制模块
 class AimdRateControl {
 public:
     AimdRateControl();

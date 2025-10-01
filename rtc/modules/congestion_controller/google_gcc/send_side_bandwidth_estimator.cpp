@@ -145,6 +145,7 @@ void SendSideBandwidthEstimator::UpdateEstimate(webrtc::Timestamp at_time)
     }
 }
 
+//更新目标码率
 void SendSideBandwidthEstimator::UpdateTargetBitrate(webrtc::DataRate new_bitrate) {
     //限制码率上限
     new_bitrate = std::min(new_bitrate,GetUpperLimit());
@@ -152,6 +153,7 @@ void SendSideBandwidthEstimator::UpdateTargetBitrate(webrtc::DataRate new_bitrat
     new_bitrate = std::max(new_bitrate,min_bitrate_config_);
     current_target_ = new_bitrate;
 }
+
 bool SendSideBandwidthEstimator::IsInStartPhase(webrtc::Timestamp at_time) {
     if(first_report_time_.IsInfinite() || (at_time - first_report_time_)< kStartPhase) {
         return true;

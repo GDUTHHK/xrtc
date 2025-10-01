@@ -23,11 +23,11 @@ const size_t kMaxPaddingLength = 224;
 }//namespace
 
 PeerConnection::PeerConnection() :
-    transport_controller_(std::make_unique<TransportController>()),
+    transport_controller_(std::make_unique<TransportController>()),///底层传输管理，处理 ICE 连接
     clock_(webrtc::Clock::GetRealTimeClock()),
-    video_cache_(RTC_PACKET_CACHE_SIZE),
-    task_queue_factory_(webrtc::CreateDefaultTaskQueueFactory()),
-    transport_send_(std::make_unique<RtpTransportControllerSend>(clock_,
+    video_cache_(RTC_PACKET_CACHE_SIZE),//视频缓存
+    task_queue_factory_(webrtc::CreateDefaultTaskQueueFactory()),//创建异步任务线程工厂
+    transport_send_(std::make_unique<RtpTransportControllerSend>(clock_,//拥塞控制器
         this, task_queue_factory_.get()))
 {
     transport_controller_->SignalIceState.connect(this,
@@ -37,7 +37,7 @@ PeerConnection::PeerConnection() :
 
     //注册扩展
     rtp_header_extension_map_.RegisterUri(TransportSequenceNumber::kId,TransportSequenceNumber::Uri());
-    transport_send_->SignalTargetTransferRate.connect(this,&PeerConnection::OnTargetTransferRate);//信号与槽
+    transport_send_->SignalTargetTransferRate.connect(this,&PeerConnection::OnTargetTransferRate);//设置目标码率
 }
 
 PeerConnection::~PeerConnection() {
@@ -114,6 +114,7 @@ static bool ParseTransportInfo(TransportDescription* td,
     return true;
 }
 
+//设置远端SDP
 int PeerConnection::SetRemoteSDP(const std::string& sdp) {
     std::vector<std::string> fields;
     // SDP用\n, \r\n来换行的
@@ -262,23 +263,23 @@ std::string PeerConnection::CreateAnswer(const RTCOfferAnswerOptions& options,
     if (options.send_video || options.recv_video) {
         auto video_content = std::make_shared<VideoContentDescription>();
         video_content->set_direction(GetDirection(options.send_video, options.recv_video));
-        video_content->set_rtcp_mux(options.use_rtcp_mux);
-        local_desc_->AddContent(video_content);
+        video_content->set_rtcp_mux(options.use_rtcp_mux);//启用RTCP Mux: set_rtcp_mux 表示将RTP（媒体数据）和RTCP（控制信令）在同一个网络端口上传输。
+        local_desc_->AddContent(video_content);//将这个 m=video 块添加到一个完整的会话描述 (local_desc_) 中
         local_desc_->AddTransportInfo(video_content->mid(), ice_param);
 
         // 如果发送视频，需要创建stream
         if (options.send_video) {
             std::string id = rtc::CreateRandomString(16);
             StreamParams video_stream;
-            video_stream.id = id;
+            video_stream.id = id;//
             video_stream.stream_id = stream_id;
             video_stream.cname = cname;
-            local_video_ssrc_ = rtc::CreateRandomId();
-            local_video_rtx_ssrc_ = rtc::CreateRandomId();
+            local_video_ssrc_ = rtc::CreateRandomId();//主视频流ssrc
+            local_video_rtx_ssrc_ = rtc::CreateRandomId();// RTX（重传） 流ssrc
             video_stream.ssrcs.push_back(local_video_ssrc_);
             video_stream.ssrcs.push_back(local_video_rtx_ssrc_);
             
-            // 分组
+            // 将两个SSRC分组，声明关系,local_video_rtx_ssrc_为local_video_ssrc_的重传包流
             SsrcGroup sg;
             sg.semantics = "FID";
             sg.ssrcs.push_back(local_video_ssrc_);
@@ -347,6 +348,7 @@ bool PeerConnection::SendEncodedAudio(std::shared_ptr<MediaFrame> frame) {
     return true;
 }
 
+//视频数据发送
 bool PeerConnection::SendEncodedImage(std::shared_ptr<MediaFrame> frame) {
     if (pc_state_ != PeerConnectionState::kConnected) {
         return true;
@@ -355,19 +357,25 @@ bool PeerConnection::SendEncodedImage(std::shared_ptr<MediaFrame> frame) {
     // 视频的频率90000, 1s中90000份 1ms => 90
     uint32_t rtp_timestamp = frame->ts * 90;
     
+    
     if (video_send_stream_) {
+        //定时发送RTCP包
         video_send_stream_->OnSendingRtpFrame(rtp_timestamp,
             frame->capture_time_ms,
-            frame->fmt.sub_fmt.video_fmt.idr);
+            frame->fmt.sub_fmt.video_fmt.idr);//当有IDR帧的时候强制发送
     }
 
+    //创建H.264分包器
     RtpPacketizer::Config config;
     auto packetizer = RtpPacketizer::Create(webrtc::kVideoCodecH264,
         rtc::ArrayView<const uint8_t>((uint8_t*)frame->data[0], frame->data_len[0]),
         config);
 
+    //循环创建和发送RTP包
     while (true) {
+        //创建RTP包
         auto single_packet = std::make_shared<RtpPacketToSend>(&rtp_header_extension_map_);
+        //设置RTP头部字段
         single_packet->SetPayloadType(video_pt_);
         single_packet->SetTimestamp(rtp_timestamp);
         single_packet->SetSsrc(local_video_ssrc_);
@@ -375,26 +383,29 @@ bool PeerConnection::SendEncodedImage(std::shared_ptr<MediaFrame> frame) {
         //给RTP头部扩展分布内存空间
         //预留空间
         single_packet->ReserveExtension<TransportSequenceNumber>();
- 
+
+        //填充负载数据
         if (!packetizer->NextPacket(single_packet.get())) {
             break;
         }
 
+        //设置序列号和包类型
         single_packet->SetSequenceNumber(video_seq_++);
         single_packet->set_packet_type(RtpPacketType::kVideo);
 
+        //更新统计信息
         if (video_send_stream_) {
             video_send_stream_->UpdateRtpStats(single_packet, false, false);
         }
 
+        //缓存包（用于重传）
         AddVideoCache(single_packet);
-        // 发送数据包
+        // 发送数据包到传输层
         // TODO, transport_name此处写死，后面可以换成变量
         // transport_controller_->SendPacket("audio", (const char*)single_packet->data(),
         //     single_packet->size());
-        std::unique_ptr<RtpPacketToSend> packet = 
-        std::make_unique<RtpPacketToSend>(*single_packet);
-    transport_send_->EnqueuePacket(std::move(packet));
+        auto packet = std::make_unique<RtpPacketToSend>(*single_packet);
+        transport_send_->EnqueuePacket(std::move(packet));
     }
 
     return true;
@@ -463,6 +474,7 @@ void PeerConnection::SendPacket(std::unique_ptr<RtpPacketToSend> packet,const we
     transport_send_->OnSentPacket(sent);
 }
 
+//产生填充包
 std::vector<std::unique_ptr<RtpPacketToSend>> PeerConnection::GeneratePadding(webrtc::DataSize packet_size) 
 {
     std::vector<std::unique_ptr<RtpPacketToSend>> padding_packets;
@@ -522,13 +534,17 @@ void PeerConnection::OnIceState(TransportController*,
         pc_state_ = pc_state;
         SignalConnectionState(this, pc_state);
     }
+
     if(PeerConnectionState::kConnected == pc_state) {
+        //已连接状态
         transport_controller_->OnNetworkOk(true);
     }else if(PeerConnectionState::kDisconnected == pc_state || PeerConnectionState::kFailed == pc_state) {
+        //连接失败或者关闭
         transport_controller_->OnNetworkOk(false);
     }
 }
 
+//RTCP反馈处理
 void PeerConnection::OnRtcpPacketReceived(TransportController*, 
     const char* data, size_t len, int64_t) 
 {
@@ -537,6 +553,7 @@ void PeerConnection::OnRtcpPacketReceived(TransportController*,
     }
 }
 
+//创建音频流
 void PeerConnection::CreateAudioSendStream(AudioContentDescription* audio_content) {
     if (!audio_content) {
         return;
@@ -561,7 +578,7 @@ void PeerConnection::CreateAudioSendStream(AudioContentDescription* audio_conten
     }
 }
 
-
+//创建视频流
 void PeerConnection::CreateVideoSendStream(VideoContentDescription* video_content) 
 {
     if (!video_content) {
@@ -578,6 +595,7 @@ void PeerConnection::CreateVideoSendStream(VideoContentDescription* video_conten
             config.rtp.payload_type = video_pt_;
             config.rtp_rtcp_module_observer = this;
             config.transport_feedback_observer = transport_send_.get();
+            //设置重传包
             if (stream.ssrcs.size() > 1) {
                 config.rtp.rtx.ssrc = stream.ssrcs[1];
                 config.rtp.rtx.payload_type = video_rtx_pt_;
@@ -594,17 +612,20 @@ void PeerConnection::CreateVideoSendStream(VideoContentDescription* video_conten
     }
 }
 
+//RTP视频包缓存机制
 void PeerConnection::AddVideoCache(std::shared_ptr<RtpPacketToSend> packet) {
-    uint16_t seq = packet->sequence_number();
-    size_t index = seq % RTC_PACKET_CACHE_SIZE;
+    uint16_t seq = packet->sequence_number();// 获取RTP序列号
+    size_t index = seq % RTC_PACKET_CACHE_SIZE;// 计算环形数组索引
 
+    // 避免重复存储相同序列号的包
     if (video_cache_[index] && video_cache_[index]->sequence_number() == seq) {
         return;
     }
 
-    video_cache_[index] = packet;
+    video_cache_[index] = packet;// 存储包到缓存
 }
 
+//查找视频缓存
 std::shared_ptr<RtpPacketToSend> PeerConnection::FindVideoCache(uint16_t seq) {
     size_t index = seq % RTC_PACKET_CACHE_SIZE;
     if (video_cache_[index] && video_cache_[index]->sequence_number() == seq) {

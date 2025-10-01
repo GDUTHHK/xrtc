@@ -27,6 +27,7 @@ X264EncoderFilter::X264EncoderFilter() :
 X264EncoderFilter::~X264EncoderFilter() {
 }
 
+//初始化编码器，对图像进行编码发送
 bool X264EncoderFilter::Start() {
     RTC_LOG(LS_INFO) << "X264EncoderFilter Start";
 

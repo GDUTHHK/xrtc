@@ -8,6 +8,7 @@
 
 namespace xrtc {
 
+//比特探测
 struct BitrateProberConfig {
         int min_probe_packets_sent = 5;//最小探测次数
         webrtc::TimeDelta min_probe_duration = webrtc::TimeDelta::Millis(15);//最小探测持续时间

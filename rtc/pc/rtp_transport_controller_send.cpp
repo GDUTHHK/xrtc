@@ -8,11 +8,12 @@ RtpTransportControllerSend::RtpTransportControllerSend(webrtc::Clock* clock,
     PacingController::PacketSender* packet_sender,
     webrtc::TaskQueueFactory* task_queue_factory) :
     clock_(clock),
-    task_queue_pacer_(std::make_unique<TaskQueuePacedSender>(clock, 
-        packet_sender, task_queue_factory,
+    task_queue_pacer_(std::make_unique<TaskQueuePacedSender>(
+        clock, 
+        packet_sender, 
+        task_queue_factory,
         webrtc::TimeDelta::Millis(1)),
-        task_queue_(task_queue_factory->CreateTaskQueue("rtp_send_task_queue",
-        webrtc::TaskQueueFactory::Priority::NORMAL))
+    task_queue_(task_queue_factory->CreateTaskQueue("rtp_send_task_queue",webrtc::TaskQueueFactory::Priority::NORMAL))
 {
     task_queue_pacer_->EnsureStarted();
 
@@ -53,7 +54,7 @@ void RtpTransportControllerSend::OnNetworkOk(bool network_ok) {
             MaybeCreateController();//在这里创建一个googlecc的网络控制器
             PostUpdate(controller_->OnNetworkOk(constraints));
         }
-        controller_->OnNetworkOk(msg);
+        controller_->OnNetworkOk(constraints);
     });
 }
 
@@ -154,11 +155,13 @@ void RtpTransportControllerSend::UpdateControllerWithTimeInterval() {
 //定时器定时调整pacer和编码器的码率
 void RtpTransportControllerSend::StartProcessPeroidicTasks() {
     controller_task_.Stop();
-    if(process_interval_.IsFinite()) {
+    if (process_interval_.IsFinite()) {
         webrtc::RepeatingTaskHandle::DelayedStart(
-            task_queue_.Get(),process_interval_,[=]() {
+            task_queue_.Get(), process_interval_, [=]() {
                 UpdateControllerWithTimeInterval();
                 return process_interval_;
             });
     }
+}
+
 } // namespace xrtc

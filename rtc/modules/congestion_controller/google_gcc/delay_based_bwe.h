@@ -10,7 +10,7 @@
 #include "xrtc/rtc/modules/congestion_controller/google_gcc/aimd_rate_control.h"
 namespace xrtc {
 
-    //基于延迟的带宽估计
+//基于延迟的带宽估计
 class DelayBasedBwe {
 public:
 struct Result {
@@ -43,10 +43,10 @@ private:
     //target_rate:目标码率
     bool UpdateEstimate(absl::optional<webrtc::DataRate> acked_bitrate,webrtc::Timestamp& at_time,webrtc::DataRate* target_rate);
 private:
-    std::unique_ptr<InterArrivalDelta> video_inter_arrival_delta_;
-    std::unique_ptr<TrendlineEstimator> video_delay_detector_;
+    std::unique_ptr<InterArrivalDelta> video_inter_arrival_delta_;//包组之间的时间差
+    std::unique_ptr<TrendlineEstimator> video_delay_detector_;//
     webrtc::Timestamp last_seen_timestamp_ = webrtc::Timestamp::MinusInfinity();
-    AimdRateControl rate_control_;
+    AimdRateControl rate_control_;//AIMD 码率控制模块
     bool has_once_detect_overuse_ = false;//是否已经检测过一次过载
     webrtc::DataRate prev_bitrate_ = webrtc::DataRate::Zero();//上一次的吞吐量
     webrtc::BandwidthUsage prev_state_ = webrtc::BandwidthUsage::kBwNormal;//上一次的检测状态

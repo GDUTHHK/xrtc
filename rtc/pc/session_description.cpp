@@ -114,14 +114,15 @@ void SessionDescription::AddTransportInfo(const std::string& mid,
     transport_info_.push_back(td);
 }
 
+//检查给定的 mid（"audio" 或 "video"）是否属于 BUNDLE 组
 bool SessionDescription::IsBundle(const std::string& mid) {
-    auto content_group = GetGroupByName("BUNDLE");
+    auto content_group = GetGroupByName("BUNDLE");// 查找BUNDLE组
     if (!content_group || content_group->content_names().empty()) {
         return false;
     }
 
     for (auto content_name : content_group->content_names()) {
-        if (mid == content_name) {
+        if (mid == content_name) {// 检查mid是否在BUNDLE组中
             return true;
         }
     }
@@ -223,6 +224,7 @@ static void BuildSsrc(MediaContentDescription* media_content,
 
 }
 
+//生成SDP
 std::string SessionDescription::ToString() {
     std::stringstream ss;
     // version

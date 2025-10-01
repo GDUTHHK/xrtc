@@ -11,6 +11,7 @@
 
 namespace xrtc {
 
+//平滑发送总管理
 class PacingController {
 public:
     class PacketSender {
@@ -45,16 +46,16 @@ private:
 
 private:
     webrtc::Clock* clock_;
-    PacketSender* packet_sender_;
+    PacketSender* packet_sender_;//数据包发送
     uint64_t packet_counter_ = 0;
     webrtc::Timestamp last_process_time_;
-    RoundRobinPacketQueue packet_queue_;
+    RoundRobinPacketQueue packet_queue_;//流队列，存储优先级包
     webrtc::TimeDelta min_packet_limit_;
     IntervalBudget media_budget_;//间隔预算
     webrtc::DataRate pacing_bitrate_;
     bool drain_large_queue_ = true;//是否启用排空的功能
     webrtc::TimeDelta queue_time_limit_;  // 期望的最大延迟时间
-    BitrateProber prober_;
+    BitrateProber prober_;//比特探测
     bool probe_sent_failed_ = false;
 };
 

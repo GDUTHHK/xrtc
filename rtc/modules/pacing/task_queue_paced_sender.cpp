@@ -7,8 +7,7 @@ TaskQueuePacedSender::TaskQueuePacedSender(webrtc::Clock* clock,
     webrtc::TaskQueueFactory* task_queue_factory,
     webrtc::TimeDelta hold_back_window) :
     clock_(clock),
-    task_queue_(task_queue_factory->CreateTaskQueue("TaskQueuePacedSender",
-        webrtc::TaskQueueFactory::Priority::NORMAL)),
+    task_queue_(task_queue_factory->CreateTaskQueue("TaskQueuePacedSender",webrtc::TaskQueueFactory::Priority::NORMAL)),//数据包精确定时发送线程
     pacing_controller_(clock_, packet_sender),
     hold_back_window_(hold_back_window)
 {
@@ -25,29 +24,40 @@ void TaskQueuePacedSender::EnsureStarted() {
     });
 }
 
+//异步包入队
 void TaskQueuePacedSender::EnqueuePacket(std::unique_ptr<RtpPacketToSend> packet) {
     task_queue_.PostTask([this, packet_ = std::move(packet)]() mutable {
         pacing_controller_.EnqueuePacket(std::move(packet_));
     });
 }
 
+//码率设置
 void TaskQueuePacedSender::SetPacingRates(webrtc::DataRate pacing_rate) {
     task_queue_.PostTask([this, pacing_rate]() {
-        pacing_controller_.SetPacingBitrate(pacing_rate);
-        MaybeProcessPackets(webrtc::Timestamp::MinusInfinity());
+        pacing_controller_.SetPacingBitrate(pacing_rate);//设置新的发送码率
+        MaybeProcessPackets(webrtc::Timestamp::MinusInfinity());//立即检查是否需要发送数据包
     });
 }
 
+//带宽探测
 void TaskQueuePacedSender::CreateProbeCluster(webrtc::DataRate bitrate,int cluster_id) {
     task_queue_.PostTask([this, bitrate, cluster_id]() {
         pacing_controller_.CreateProbeCluster(bitrate, cluster_id);
     });
 }
 
-//定期去执行 pacing_controller_.ProcessPackets();
+//定期去执行 pacing_controller_.ProcessPackets();定时数据包处理
 void TaskQueuePacedSender::MaybeProcessPackets(
     webrtc::Timestamp scheduled_process_time) 
 {
+    /*
+    当传入MinusInfinity时：
+    is_sheculded_call,比较通常为false，会重新计算time_to_next_send
+    next_process_time_.IsMinusInfinity() 为true
+    立即计算下次发送时间，可能立即发送或很短延迟后发送
+    安排下次发送任务（可能是立即或很短延迟）
+    */ 
+
     //下一次调度的时间
     webrtc::Timestamp next_process_time = pacing_controller_.NextSendTime();
     bool is_sheculded_call = (scheduled_process_time == next_process_time_);

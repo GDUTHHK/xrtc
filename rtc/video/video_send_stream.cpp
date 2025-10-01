@@ -10,12 +10,13 @@ std::unique_ptr<ModuleRtpRtcpImpl> CreateRtpRtcpModule(webrtc::Clock* clock,
     const VideoSendStreamConfig& vsconfig) 
 {
     RtpRtcpInterface::Configuration config;
-    config.audio = false;
-    config.receiver_only = false;
-    config.clock = clock;
-    config.local_media_ssrc = vsconfig.rtp.ssrc;
-    config.payload_type = vsconfig.rtp.payload_type;
-    config.rtcp_report_interval_ms = vsconfig.rtcp_report_interval_ms;
+    config.audio = false;// 视频流
+    config.receiver_only = false;// 发送模式
+    config.clock = clock;// 时钟
+    config.local_media_ssrc = vsconfig.rtp.ssrc;// SSRC
+    config.payload_type = vsconfig.rtp.payload_type;// 负载类型
+    config.rtcp_report_interval_ms = vsconfig.rtcp_report_interval_ms;// RTCP间隔
+
     config.clock_rate = vsconfig.rtp.clock_rate;
     config.rtp_rtcp_module_observer = vsconfig.rtp_rtcp_module_observer;
     config.transport_feedback_observer = vsconfig.transport_feedback_observer;
@@ -29,19 +30,21 @@ VideoSendStream::VideoSendStream(webrtc::Clock* clock,
     config_(config),
     rtp_rtcp_(CreateRtpRtcpModule(clock, config))
 {
-    rtp_rtcp_->SetRTCPStatus(webrtc::RtcpMode::kCompound);
-    rtp_rtcp_->SetSendingStatus(true);
+    rtp_rtcp_->SetRTCPStatus(webrtc::RtcpMode::kCompound);// 复合RTCP模式
+    rtp_rtcp_->SetSendingStatus(true);// 启用发送
 }
 
 VideoSendStream::~VideoSendStream() {
 }
 
+//发送RTP包时更新统计
 void VideoSendStream::UpdateRtpStats(std::shared_ptr<RtpPacketToSend> packet, 
     bool is_rtx, bool is_retransmit) 
 {
     rtp_rtcp_->UpdateRtpStats(packet, is_rtx, is_retransmit);
 }
 
+//发送视频帧时触发RTCP
 void VideoSendStream::OnSendingRtpFrame(uint32_t rtp_timestamp, 
     int64_t capture_time_ms,
     bool forced_report) 
@@ -50,6 +53,7 @@ void VideoSendStream::OnSendingRtpFrame(uint32_t rtp_timestamp,
         forced_report);
 }
 
+//接收RTCP反馈
 void VideoSendStream::DeliverRtcp(const uint8_t* packet, size_t length) {
     rtp_rtcp_->IncomingRtcpPacket(packet, length);
 }

@@ -23,6 +23,7 @@ TransportController::~TransportController() {
     }
 }
 
+//设置对端的SDP
 int TransportController::SetRemoteSDP(SessionDescription* desc) {
     if (!desc) {
         return -1;
@@ -54,11 +55,23 @@ int TransportController::SetRemoteSDP(SessionDescription* desc) {
     return 0;
 }
 
+//设置本地的SDP
 int TransportController::SetLocalSDP(SessionDescription* desc) {
     if (!desc) {
         return -1;
     }
+    /*
+    没有BUNDLE的情况：
+    ├── 为 "audio" 创建ICE传输通道
+    └── 为 "video" 创建ICE传输通道  (两个独立的传输通道)
 
+    有BUNDLE的情况：
+    ├── 为 "audio" 创建ICE传输通道
+    └── "video" 跳过，复用 "audio" 的传输通道  (只有一个传输通道)
+
+    第一个BUNDLE成员，会设置ICE参数
+    第二个BUNDLE成员，会跳过ICE设置,使用相同的ICE参数
+    */
     for (auto content : desc->contents()) {
         std::string mid = content->mid();
         if (desc->IsBundle(mid) && mid != desc->GetFirstBundleId()) {
@@ -72,6 +85,7 @@ int TransportController::SetLocalSDP(SessionDescription* desc) {
         }
     }
 
+    //所有ICE参数设置完成后，开始收集候选者
     ice_agent_->GatheringCandidate();
 
     return 0;
@@ -84,12 +98,14 @@ int TransportController::SendPacket(const std::string& transport_name,
     return ice_agent_->SendPacket(transport_name, 1, data, len);
 }
 
+//转发至上层接收ICE的状态
 void TransportController::OnIceState(ice::IceAgent*, 
     ice::IceTransportState ice_state) 
 {
     SignalIceState(this, ice_state);
 }
 
+//将从网络接收到的原始数据包进行类型识别和路由分发。
 void TransportController::OnReadPacket(ice::IceAgent*, const std::string&, int, 
     const char* data, size_t len, int64_t ts) 
 {
@@ -99,9 +115,11 @@ void TransportController::OnReadPacket(ice::IceAgent*, const std::string&, int,
         return;
     }
 
+    //RTCP包
     if (RtpPacketType::kRtcp == packet_type) {
         SignalRtcpPacketReceived(this, data, len, ts);
     }
+    //RTP包
     else if (RtpPacketType::kRtp == packet_type) {
         SignalRtpPacketReceived(this, data, len, ts);
     }

@@ -7,6 +7,8 @@
 #include <api/units/data_rate.h>
 
 namespace xrtc {
+
+//基于丢包的带宽估计
 class SendSideBandwidthEstimator {
 public:
     SendSideBandwidthEstimator();
@@ -41,7 +43,7 @@ private:
     webrtc::DataRate delay_based_bitrate_ = webrtc::DataRate::PlusInfinity();//基于延迟的目标码率
     webrtc::DataRate max_bitrate_config_ ;//最大码率
     webrtc::DataRate min_bitrate_config_ ;//最小码率
-    std::deque<std::pair<webrtc::Timestamp,webrtc::DataRate>> min_bitrate_history_;
+    std::deque<std::pair<webrtc::Timestamp,webrtc::DataRate>> min_bitrate_history_;//最小码率历史队列
     float low_loss_threshold_ ;//低丢包率阈值
     float high_loss_threshold_ ;//高丢包率阈值
     webrtc::Timestamp time_last_decrease_ = webrtc::Timestamp::MinusInfinity();

@@ -37,9 +37,9 @@ private:
     void StartProcessPeroidicTasks();
 private:
     webrtc::Clock* clock_;
-    std::unique_ptr<TaskQueuePacedSender> task_queue_pacer_;
-    NetworkControllerConfig controller_config_;
-    std::unique_ptr<NetworkControllerInterface> controller_;
+    std::unique_ptr<TaskQueuePacedSender> task_queue_pacer_;//pacer调度
+    NetworkControllerConfig controller_config_;//参数配置
+    std::unique_ptr<NetworkControllerInterface> controller_;//Google拥塞控制
     bool network_ok_ = false;
 
     TransportFeedbackAdapter transport_feedback_adapter_;

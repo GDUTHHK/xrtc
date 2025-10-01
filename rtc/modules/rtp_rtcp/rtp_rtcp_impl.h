@@ -10,6 +10,7 @@
 #include "xrtc/rtc/modules/rtp_rtcp/rtcp_receiver.h"
 namespace xrtc {
 
+//RTP / RTCP处理
 class ModuleRtpRtcpImpl {
 public:
     ModuleRtpRtcpImpl(const RtpRtcpInterface::Configuration& config);
@@ -37,11 +38,11 @@ private:
 
 private:
     RtpRtcpInterface::Configuration config_;
-    StreamDataCounter rtp_stats_;
-    StreamDataCounter rtx_rtp_stats_;
+    StreamDataCounter rtp_stats_; // 普通RTP包统计
+    StreamDataCounter rtx_rtp_stats_;// 重传RTX包统计
 
-    RTCPSender rtcp_sender_;
-    RTCPReceiver rtcp_receiver_;
+    RTCPSender rtcp_sender_;//RTCP发送器
+    RTCPReceiver rtcp_receiver_;//RTCP接收器
     
     webrtc::ScopedTaskSafety task_safety_;
 };

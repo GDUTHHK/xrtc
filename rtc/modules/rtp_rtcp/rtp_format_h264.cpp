@@ -53,7 +53,7 @@ bool RtpPacketizerH264::NextPacket(RtpPacketToSend* rtp_packet) {
 
     PacketUnit* packet = &packets_.front();
     if (packet->first_fragment && packet->last_fragment) {
-        // 单个NALU包
+        // 单个NALU包：小于MTU的NALU直接放入一个RTP包
         size_t packet_size = packet->source_fragment.size();
         uint8_t* buffer = rtp_packet->AllocatePayload(packet_size);
         memcpy(buffer, packet->source_fragment.data(), packet_size);
@@ -61,11 +61,11 @@ bool RtpPacketizerH264::NextPacket(RtpPacketToSend* rtp_packet) {
         input_fragments_.pop_front();
     }
     else if (packet->aggregated) {
-        // STAP-A
+        // 聚合包 STAP-A ：多个小NALU聚合在一个RTP包中
         NextAggregatedPacket(rtp_packet);
     }
     else {
-        // FU-A
+        //分片包 FU-A ：大于MTU的NALU分成多个RTP包
         NextFragmentPacket(rtp_packet);
     }
 

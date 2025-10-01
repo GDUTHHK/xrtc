@@ -34,11 +34,12 @@ XRTCMediaSink::~XRTCMediaSink() {
 }
 
 bool XRTCMediaSink::Start() {
-    // 解析Url
+    // 解析推流URL
     if (!ParseUrl(url_, protocol_, host_, action_, request_params_)) {
         return false;
     }
 
+    // 验证必要参数
     if (action_ != "push" || request_params_["uid"].empty() || request_params_["streamName"].empty()) {
         RTC_LOG(LS_WARNING) << "invalid url: " << url_;
         return false;
@@ -46,7 +47,7 @@ bool XRTCMediaSink::Start() {
 
     // 发送信令请求
     // https://www.str2num.com/signaling/push?uid=xxx&streamName=xxx&audio=1&video=1&isDtls=0
-    // 构造body
+    // 构造HTTP请求体
     std::stringstream body;
     body << "uid=" << request_params_["uid"]
         << "&streamName=" << request_params_["streamName"]
@@ -63,6 +64,7 @@ bool XRTCMediaSink::Start() {
             << ", err_msg: " << reply.get_err_msg()
             << ", response: " << reply.get_resp();
 
+        //解析服务器SDP Offer
         std::string type;
         std::string sdp;
 
@@ -73,15 +75,22 @@ bool XRTCMediaSink::Start() {
             return;
         }
 
+        /*
+        * 设置远端SDP
+        作用：将服务器的SDP Offer设置为远端描述，这会触发：
+                ICE候选者收集
+                传输通道建立
+                媒体协商
+        */
         if (pc_->SetRemoteSDP(sdp) != 0) {
             return;
         }
 
         RTCOfferAnswerOptions options;
-        options.recv_audio = false;
+        options.recv_audio = false;// 推流模式：只发送，不接收
         options.recv_video = false;
         std::string answer = pc_->CreateAnswer(options, request_params_["uid"]);
-        SendAnswer(answer);
+        SendAnswer(answer); //发送Answer给服务器
 
     }, this);
 
@@ -136,6 +145,7 @@ void XRTCMediaSink::OnConnectionState(PeerConnection*,
     }
 }
 
+//设置编码器比特率
 void XRTCMediaSink::OnTargetTransferRate(PeerConnection*, const webrtc::TargetTransferRate& target_bitrate) {
     XRTCGlobal::Instance()->worker_thread()->PostTask(
         webrtc::ToQueuedTask([=]() {

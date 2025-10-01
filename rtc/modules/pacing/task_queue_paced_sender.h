@@ -10,6 +10,7 @@
 
 namespace xrtc {
 
+//平滑发送任务队列管理层
 class TaskQueuePacedSender {
 public:
     TaskQueuePacedSender(webrtc::Clock* clock,

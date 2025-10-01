@@ -14,18 +14,21 @@
 
 namespace xrtc {
 
+//SDP类型枚举
 enum class SdpType {
-    kOffer,
-    kAnswer,
+    kOffer,// Offer类型的SDP
+    kAnswer,// Answer类型的SDP
 };
 
+//RTP方向枚举详解
 enum class RtpDirection {
-    kSendRecv,
-    kSendOnly,
-    kRecvOnly,
-    kInactive,
+    kSendRecv,  // 双向：既发送又接收
+    kSendOnly,  // 仅发送
+    kRecvOnly,  // 仅接收  
+    kInactive,  // 不活跃：既不发送也不接收
 };
 
+//内容组类
 class ContentGroup {
 public:
     ContentGroup(const std::string& semantics) : semantics_(semantics) {}
@@ -37,10 +40,11 @@ public:
     bool HasContentName(const std::string& content_name);
 
 private:
-    std::string semantics_;
-    std::vector<std::string> content_names_;
+    std::string semantics_; //组语义 (如"BUNDLE")
+    std::vector<std::string> content_names_;// 内容名称列表 (如["audio", "video"])
 };
 
+//传输描述类
 class TransportDescription {
 public:
     std::string mid;
@@ -78,11 +82,11 @@ public:
     }
 
 protected:
-    std::vector<ice::Candidate> candidates_;
-    std::vector<std::shared_ptr<CodecInfo>> codecs_;
-    RtpDirection direction_ = RtpDirection::kInactive;
-    bool rtcp_mux_ = true;
-    std::vector<StreamParams> send_streams_;
+    std::vector<ice::Candidate> candidates_;           // ICE候选者列表
+    std::vector<std::shared_ptr<CodecInfo>> codecs_;   // 编解码器列表
+    RtpDirection direction_ = RtpDirection::kInactive; // RTP方向
+    bool rtcp_mux_ = true;                             // RTCP复用
+    std::vector<StreamParams> send_streams_;           // 发送流参数
 };
 
 class AudioContentDescription : public MediaContentDescription {
@@ -130,8 +134,8 @@ public:
 
 private:
     SdpType sdp_type_;
-    std::vector<std::shared_ptr<MediaContentDescription>> contents_;
-    std::vector<ContentGroup> content_groups_;
+    std::vector<std::shared_ptr<MediaContentDescription>> contents_;//媒体内容描述
+    std::vector<ContentGroup> content_groups_;//内容组类
     std::vector<std::shared_ptr<TransportDescription>> transport_info_;
 };
 

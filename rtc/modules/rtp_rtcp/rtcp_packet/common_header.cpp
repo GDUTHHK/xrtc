@@ -35,10 +35,10 @@ bool CommonHeader::Parse(const uint8_t* buffer, size_t len) {
         return false;
     }
 
-    bool has_padding = (buffer[0] & 0x20) == 1;
-    count_or_fmt_ = buffer[0] & 0x1F;
-    packet_type_ = buffer[1];
-    payload_size_ = webrtc::ByteReader<uint16_t>::ReadBigEndian(&buffer[2]) * 4;
+    bool has_padding = (buffer[0] & 0x20) == 1;//P
+    count_or_fmt_ = buffer[0] & 0x1F;//FMT
+    packet_type_ = buffer[1];//PT
+    payload_size_ = webrtc::ByteReader<uint16_t>::ReadBigEndian(&buffer[2]) * 4;//负载的字节数
     padding_size_ = 0;
     payload_ = buffer + kHeaderSizeBytes;
 
@@ -55,7 +55,7 @@ bool CommonHeader::Parse(const uint8_t* buffer, size_t len) {
         }
 
         // 最后一个字节表示padding的大小
-        padding_size_ = payload_[payload_size_ - 1];
+        padding_size_ = payload_[payload_size_ - 1];//padding的字节数
         if (padding_size_ == 0) {
             RTC_LOG(LS_WARNING) << "invalid rtcp packet, has padding, but padding_size is 0";
             return false;

@@ -13,7 +13,7 @@ public:
 private:
     bool Register(int id,RTPExtensionType type,absl::string_view uri);
 private:
-    uint8_t ids_[kRtpExtensionNumberOfExtensions];
+    uint8_t ids_[kRtpExtensionNumberOfExtensions];//RTP扩展的个数
 };
 } // namespace xrtc
 
