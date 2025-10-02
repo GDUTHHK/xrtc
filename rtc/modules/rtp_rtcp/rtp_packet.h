@@ -70,7 +70,7 @@ private:
         ExtensionInfo(uint8_t id,size_t length,size_t offset) : id(id), length(length), offset(offset) {}
         uint8_t id;//扩展的id
         size_t length;//扩展的长度
-        size_t offset;//扩展在RTP头中的偏移量，不包含扩展的头部字节
+        size_t offset;//扩展在RTP头中的偏移量，不包含扩展的头部字节,指的是data的起始偏移地址
     };
     rtc::ArrayView<uint8_t> AllocateRawExtension(uint8_t id,size_t length);
 private:
@@ -83,9 +83,8 @@ private:
     size_t payload_size_;
     size_t padding_size_;
     RtpHeaderExtensionMap extensions_;
-    std::vector<ExtensionInfo> extension_entries_;  
-    //添加扩展的总长度
-    size_t extension_size_ = 0;
+    std::vector<ExtensionInfo> extension_entries_;  //存储扩展
+    size_t extension_size_ = 0;//扩展的总长度
     rtc::CopyOnWriteBuffer buffer_;
 };
 

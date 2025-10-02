@@ -24,7 +24,7 @@ public:
     std::unique_ptr<RtpPacketToSend> Pop();
 
     bool Empty() const;
-    webrtc::DataSize Size() const { return size_; }//队列当中还存在的数据大小
+    webrtc::DataSize Size() const { return size_; }//获得队列当中还存在的数据大小
     size_t SizePackets() const { return size_packets_; }
     void UpdateQueueTime(webrtc::Timestamp now);
     webrtc::TimeDelta AverageQueueTime() const;

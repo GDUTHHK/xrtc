@@ -5,6 +5,7 @@
 #include<api/array_view.h>
 
 namespace xrtc {
+//存放的是RTP的序列号
 class TransportSequenceNumber{
     public:
     using value_type = uint16_t;

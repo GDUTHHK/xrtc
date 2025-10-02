@@ -59,7 +59,7 @@ std::unique_ptr<RtpPacketToSend> RoundRobinPacketQueue::Pop() {
     // 先从map中删除该流的优先级
     stream_priorities_.erase(stream->priority_it);
 
-    queue_time_sum_ -= (last_time_updated_ - queued_packet.EnqueueTime());
+    queue_time_sum_ -= (last_time_updated_ - queued_packet.EnqueueTime());//更新队列等待的总时间
     
     webrtc::DataSize packet_size = PacketSize(queued_packet);//计算包大小
     // 更新stream累计发送的字节数
@@ -101,6 +101,7 @@ void RoundRobinPacketQueue::UpdateQueueTime(webrtc::Timestamp now) {
     last_time_updated_ = now;
 }
 
+//平均排队时间
 webrtc::TimeDelta RoundRobinPacketQueue::AverageQueueTime() const {
     if (Empty()) {
         return webrtc::TimeDelta::Zero();
@@ -134,7 +135,7 @@ void RoundRobinPacketQueue::Push(const QueuedPacket& packet) {
             packet.Ssrc());
     }
 
-    UpdateQueueTime(packet.EnqueueTime());
+    UpdateQueueTime(packet.EnqueueTime());//更新队列等待的总时间
     size_packets_ += 1;
     size_ += PacketSize(packet);
     stream->packet_queue.emplace(packet);

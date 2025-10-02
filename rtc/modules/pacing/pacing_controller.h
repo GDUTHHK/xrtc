@@ -53,7 +53,7 @@ private:
     webrtc::TimeDelta min_packet_limit_;
     IntervalBudget media_budget_;//间隔预算
     webrtc::DataRate pacing_bitrate_;//目标码率，带宽估计会动态设置
-    bool drain_large_queue_ = true;//是否启用排空的功能
+    bool drain_large_queue_ = true;//数据比较大的时候是否启用排空的功能，控制在一定的延时发送
     webrtc::TimeDelta queue_time_limit_;  // 期望的最大延迟时间
     BitrateProber prober_;//比特探测
     bool probe_sent_failed_ = false;

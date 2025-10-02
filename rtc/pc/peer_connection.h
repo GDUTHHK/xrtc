@@ -79,7 +79,7 @@ private:
     std::unique_ptr<SessionDescription> remote_desc_;//远端会话描述
     std::unique_ptr<SessionDescription> local_desc_;//本地会话描述
     std::unique_ptr<TransportController> transport_controller_;//底层传输管理，处理 ICE 连接
-    RtpHeaderExtensionMap rtp_header_extension_map_;//RTP头部扩展管理器
+    RtpHeaderExtensionMap rtp_header_extension_map_;//RTP头部扩展
     
     //uint32_t local_audio_ssrc_ = 0;
     uint32_t local_video_ssrc_ = 0;
@@ -91,7 +91,7 @@ private:
     // 按照规范该值的初始值需要随机
     uint16_t video_seq_ = 1000;
     uint16_t audio_seq_ = 1000;
-    uint16_t transport_seq_ = 1000;
+    uint16_t transport_seq_ = 1000;//会话级别的计数
     
     PeerConnectionState pc_state_ = PeerConnectionState::kNew;//连接状态枚举
     webrtc::Clock* clock_;

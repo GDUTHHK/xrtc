@@ -149,6 +149,7 @@ rtc::ArrayView<const uint8_t> RtpPacket::FindExtension(RTPExtensionType type) co
     }
     return rtc::MakeArrayView<const uint8_t>(data() + extension_info->offset, extension_info->length);
 }
+
 rtc::ArrayView<uint8_t> RtpPacket::AllocateExtension(RTPExtensionType type, size_t length) {
     //长度校验
     if (length == 0 || length > webrtc::RtpExtension::kMaxValueSize) {
@@ -163,6 +164,8 @@ rtc::ArrayView<uint8_t> RtpPacket::AllocateExtension(RTPExtensionType type, size
 
     return AllocateRawExtension(id, length);
 }
+
+//添加扩展头
 rtc::ArrayView<uint8_t> RtpPacket::AllocateRawExtension(uint8_t id, size_t length) {
     //判断将要添加的扩展，是否已经添加过了
     ExtensionInfo* extension_entry = FindExtensionInfo(id);
@@ -185,9 +188,10 @@ rtc::ArrayView<uint8_t> RtpPacket::AllocateRawExtension(uint8_t id, size_t lengt
         RTC_LOG(LS_WARNING) << "cannot add extension id:"<<id<<" after padding is set";
         return nullptr;
     }
+
     //获得扩展在RTP头中的偏移量
     size_t num_csrc = data()[0] & 0x0F;
-    size_t extensions_offset = kFixedHeaderSize + (num_csrc * 4) + 4;
+    size_t extensions_offset = kFixedHeaderSize + (num_csrc * 4) + 4;//profile_id和length之后的地址
 
     //将要添加的扩展使用的是一字节头还是两字节头
     bool two_bytes_header_required = id>webrtc::RtpExtension::kOneByteHeaderExtensionMaxId
@@ -203,8 +207,7 @@ rtc::ArrayView<uint8_t> RtpPacket::AllocateRawExtension(uint8_t id, size_t lengt
                 //原始的已添加的扩展都是1字节头，但是新添加的扩展需要两字节头
                 //需要将扩展头提升为两字节头
                 //在提升之前需要判断容量是否足够
-                //提升之后的扩展头长度  = 原来的扩展头长度 + 已经存在的扩展头个数*1 + 当前新扩展的头部
-                //+当前新扩展的数据长度
+                //提升之后的扩展头长度  = 原来的扩展头长度 + 已经存在的扩展头个数*1 + 当前新扩展的头部+当前新扩展的数据长度
                 size_t expected_extension_size = extension_size_ + extension_entries_.size()*1 + kTwoByteHeaderExtensionLength + length;
                 if(extensions_offset + expected_extension_size > capacity()){
                     RTC_LOG(LS_WARNING) << "cannot promote to two byte header extension, no enough space in buffer";
@@ -223,10 +226,12 @@ rtc::ArrayView<uint8_t> RtpPacket::AllocateRawExtension(uint8_t id, size_t lengt
                                                 : kTwoByteExtensionHeaderProfileId;
         // 计算添加扩展后的新的扩展总长度
     size_t new_extensions_size = extension_size_ + extension_header_size + length;
+
     if (extensions_offset + new_extensions_size > capacity()) {
         RTC_LOG(LS_ERROR)<< "Extension cannot be registered: Not enough space left in buffer.";
         return nullptr;
     }
+
     //如果是第一个扩展的话，还需要写入profile_id
     if (extension_size_ == 0) {
         // 如果之前没有添加扩展，需要设置RTP头部扩展位，设置X标记位置
@@ -234,6 +239,7 @@ rtc::ArrayView<uint8_t> RtpPacket::AllocateRawExtension(uint8_t id, size_t lengt
         // 写入扩展profile_id 
         webrtc::ByteWriter<uint16_t>::WriteBigEndian(WriteAt(extensions_offset - 4),profile_id);
     }
+
     if (profile_id == kOneByteExtensionProfileId) {
         uint8_t one_byte_header = ((uint8_t)(id)) << 4;
         one_byte_header |= (uint8_t)(length - 1);
@@ -246,6 +252,7 @@ rtc::ArrayView<uint8_t> RtpPacket::AllocateRawExtension(uint8_t id, size_t lengt
         uint8_t extension_length = (uint8_t)(length);
         WriteAt(extensions_offset + extension_size_ + 1, extension_length);
     }
+
     //将新添加的扩展保存到extension_entries_中
     const uint16_t extension_info_offset = (uint16_t)(extensions_offset + extension_size_ + extension_header_size);
     const uint8_t extension_info_length = (uint8_t)(length);
@@ -273,6 +280,7 @@ void RtpPacket::PromoteToTwoByteHeaderExtension() {
     size_t num_csrc = data()[0] & 0x0F;
     //偏移量不包含自身的头部
     size_t extensions_offset = kFixedHeaderSize + (num_csrc * 4) + 4;
+    //向后移动的个数
     size_t write_read_delta = extension_entries_.size();
     //从后向前遍历扩展
     for (auto extension_entry = extension_entries_.rbegin();extension_entry != extension_entries_.rend(); ++extension_entry) {
@@ -292,10 +300,13 @@ void RtpPacket::PromoteToTwoByteHeaderExtension() {
     // 更新profile header, 扩展长度和填充值
     webrtc::ByteWriter<uint16_t>::WriteBigEndian(WriteAt(extensions_offset - 4),kTwoByteExtensionProfileId);
     extension_size_ += extension_entries_.size();
+    //判断是否要填充padding
     uint16_t extensions_size_padded =SetExtensionLengthMaybeAddZeroPadding(extensions_offset);
     payload_offset_ = extensions_offset + extensions_size_padded;
     buffer_.SetSize(payload_offset_);
 }
+
+//判断是否要填充padding
 uint16_t RtpPacket::SetExtensionLengthMaybeAddZeroPadding(size_t extensions_offset) {
     // 确保4字节对齐
     uint16_t extensions_words = (uint16_t)((extension_size_ + 3) / 4); // Wrap up to 32bit.
@@ -303,7 +314,7 @@ uint16_t RtpPacket::SetExtensionLengthMaybeAddZeroPadding(size_t extensions_offs
     // 需要填充的字节数
     size_t extension_padding_size = 4 * extensions_words - extension_size_;
     memset(WriteAt(extensions_offset + extension_size_), 0,extension_padding_size);
-    return 4 * extensions_words;
+    return 4 * extensions_words;//返回最终含padding的字节数
 }
 
 

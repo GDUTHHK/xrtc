@@ -64,7 +64,7 @@ void PacingController::ProcessPackets() {
     //大队列的情况
     if (elapsed_time > webrtc::TimeDelta::Zero()) {
         webrtc::DataRate target_rate = pacing_bitrate_;
-        packet_queue_.UpdateQueueTime(now);
+        packet_queue_.UpdateQueueTime(now);//更新队列累计的时间
         // 队列当中正在排队的总字节数
         webrtc::DataSize queue_data_size = packet_queue_.Size();
         if (queue_data_size > webrtc::DataSize::Zero()) {

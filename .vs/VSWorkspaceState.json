@@ -2,15 +2,15 @@
   "ExpandedNodes": [
     "",
     "\\media",
-    "\\media\\sink",
     "\\media\\source",
     "\\rtc",
     "\\rtc\\modules",
     "\\rtc\\modules\\congestion_controller",
     "\\rtc\\modules\\congestion_controller\\google_gcc",
+    "\\rtc\\modules\\rtp_rtcp",
     "\\rtc\\pc",
     "\\rtc\\video"
   ],
-  "SelectedNode": "\\rtc\\modules\\pacing\\task_queue_paced_sender.cpp",
+  "SelectedNode": "\\rtc\\pc\\peer_connection.cpp",
   "PreviewInSolutionExplorer": false
 }

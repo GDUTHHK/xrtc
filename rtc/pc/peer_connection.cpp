@@ -392,6 +392,8 @@ bool PeerConnection::SendEncodedImage(std::shared_ptr<MediaFrame> frame) {
         //设置序列号和包类型
         single_packet->SetSequenceNumber(video_seq_++);
         single_packet->set_packet_type(RtpPacketType::kVideo);
+        //给头部扩展包里的data中写入会话级别的序列号从1000开始
+        single_packet->SetExtension<TransportSequenceNumber>(transport_seq_++);
 
         //更新统计信息
         if (video_send_stream_) {
